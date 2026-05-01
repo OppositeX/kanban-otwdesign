@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project tasks — kanban</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: #fafaf7;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+  padding: 20px;
+  line-height: 1.4;
+}
+.app { max-width: 1400px; margin: 0 auto; }
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.title { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.2px; }
+.meta { font-size: 13px; color: #6b6b66; margin-top: 4px; }
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.stat {
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stat-label { font-size: 11px; color: #6b6b66; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-value { font-size: 22px; font-weight: 500; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.chip {
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 0.5px solid rgba(0,0,0,0.12);
+  background: #fff;
+  cursor: pointer;
+  color: #4a4a45;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+}
+.chip:hover { border-color: rgba(0,0,0,0.25); color: #1a1a1a; }
+.chip.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.chip.active .dot { box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.col {
+  background: #f1f0eb;
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 220px;
+}
+.col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.col-name { font-size: 13px; font-weight: 500; }
+.col-count {
+  font-size: 11px;
+  color: #6b6b66;
+  background: #fff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+}
+.card {
+  background: #fff;
+  border-radius: 8px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  transition: border-color 0.1s, transform 0.05s;
+}
+.card:hover { border-color: rgba(0,0,0,0.2); }
+.card-tag {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.2px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.card-title { font-size: 13px; font-weight: 500; line-height: 1.35; margin: 0 0 4px; }
+.card-sub { font-size: 12px; color: #6b6b66; line-height: 1.4; margin: 0; }
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #888;
+}
+.pri { display: inline-flex; align-items: center; gap: 5px; }
+.pri-dot { width: 6px; height: 6px; border-radius: 50%; }
+.empty { font-size: 12px; color: #999; text-align: center; padding: 1.5rem 0; font-style: italic; }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .summary { grid-template-columns: repeat(2, 1fr); }
+  body { padding: 14px; }
+  .title { font-size: 19px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <div>
+      <h1 class="title">Project tasks</h1>
+      <p class="meta" id="meta">7 active projects · last updated 2026-04-30</p>
+    </div>
+  </div>
+  <div class="summary" id="summary"></div>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const projects = {
+  jepeto:   { name: 'Jepeto',   color: '#7F77DD', bg: '#EEEDFE', text: '#26215C' },
+  hub:      { name: 'PBN Hub',  color: '#1D9E75', bg: '#E1F5EE', text: '#04342C' },
+  omnicity: { name: 'Omnicity', color: '#D85A30', bg: '#FAECE7', text: '#4A1B0C' },
+  clpr:     { name: 'CLPR',     color: '#D4537E', bg: '#FBEAF0', text: '#4B1528' },
+  voyc:     { name: 'VOYC',     color: '#378ADD', bg: '#E6F1FB', text: '#042C53' },
+  licenser: { name: 'Licenser', color: '#BA7517', bg: '#FAEEDA', text: '#412402' },
+  songbyrd: { name: 'Songbyrd', color: '#639922', bg: '#EAF3DE', text: '#173404' }
+};
+
+const priorities = {
+  high: { label: 'High', color: '#A32D2D' },
+  med:  { label: 'Med',  color: '#BA7517' },
+  low:  { label: 'Low',  color: '#888780' }
+};
+
+const tasks = [
+  // DONE
+  { col: 'done', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
+  { col: 'done', proj: 'hub',      pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
+  { col: 'done', proj: 'hub',      pri: 'med',  t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
+  { col: 'done', proj: 'hub',      pri: 'med',  t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
+  { col: 'done', proj: 'jepeto',   pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed. 45s send timeout in v0.8.2.' },
+  { col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
+  { col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
+  { col: 'done', proj: 'omnicity', pri: 'med',  t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live on omnicity-otwdesign.vercel.app.' },
+  { col: 'done', proj: 'clpr',     pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
+  { col: 'done', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
+
+  // IN PROGRESS
+  { col: 'wip', proj: 'jepeto',   pri: 'high', t: 'v1.0 roadmap — read + action tools', s: 'Off-canvas fix, URL ingestion, image upload, Plan Mode, Page Doctor, Keyword Burst.' },
+  { col: 'wip', proj: 'clpr',     pri: 'high', t: 'Wave 5 — Workflow Studio port', s: 'Port from upstream verbatim, lazy-load, auth-gated. No invented features.' },
+  { col: 'wip', proj: 'voyc',     pri: 'high', t: 'Supabase Auth migration — Phase 1', s: 'Project setup in Call Event org, enable Google OAuth, URL config.' },
+  { col: 'wip', proj: 'voyc',     pri: 'med',  t: 'Migration plan doc — Phase 2', s: 'Inspect voic-platform auth code, write plan for sign-off.' },
+  { col: 'wip', proj: 'songbyrd', pri: 'high', t: 'v0.1.0 push + provision', s: 'Push both repos, Render GPU service, Vercel + Supabase, end-to-end smoke test.' },
+  { col: 'wip', proj: 'hub',      pri: 'med',  t: 'Track A v2.4.2 verification', s: 'Confirm 429 surfacing on hub.d3v.co.il across child sites.' },
+
+  // AWAITING YOU
+  { col: 'wait', proj: 'hub',      pri: 'high', t: 'Track B — 108-site bulk install', s: 'Need Upress login confirm + canonical site list location.' },
+  { col: 'wait', proj: 'hub',      pri: 'med',  t: 'v2.5.0 features', s: 'Bulk Actions grid, Check All Whois, Sprint Planner, ArticleDraftCard, Favorites.' },
+  { col: 'wait', proj: 'songbyrd', pri: 'high', t: 'Logo folder access', s: 'C:\\Users\\ozomr\\Desktop\\vibe\\songbyrd — needs cowork directory approval.' },
+  { col: 'wait', proj: 'songbyrd', pri: 'med',  t: 'Vapi API key', s: 'Admin settings page reserved; key to be entered later by user.' },
+  { col: 'wait', proj: 'omnicity', pri: 'high', t: 'Vercel env vars for OAuth', s: 'Gmail / Microsoft / TikTok via Meta — user to set in Vercel.' },
+  { col: 'wait', proj: 'clpr',     pri: 'med',  t: 'Run Supabase migrations', s: 'supabase-migration-conversations.sql + favorites.sql.' },
+  { col: 'wait', proj: 'licenser', pri: 'high', t: 'Per-product architecture refactor', s: 'Global product selector at top, all child pages nested per-product.' },
+  { col: 'wait', proj: 'licenser', pri: 'med',  t: 'Design fixes — labels + collapse states', s: 'Remove "straw" labels, collapse cards by default, fix license button alignment, manual sub support.' },
+  { col: 'wait', proj: 'hub',      pri: 'high', t: 'Upress SSL renewal', s: 'Cert expiry blocking hub.d3v.co.il + 2wheel.it + 108 PBN sites. Ticket open.' },
+
+  // BACKLOG / DEFERRED
+  { col: 'back', proj: 'clpr',     pri: 'low', t: 'Marketing + Agent Studios', s: 'DROPPED — not in upstream. Per user 2026-04-29.' },
+  { col: 'back', proj: 'hub',      pri: 'low', t: 'Sprint Planner (v2.5.0)', s: 'Deferred to v2.5.0 batch.' },
+  { col: 'back', proj: 'hub',      pri: 'low', t: 'Favorites feature', s: 'Per-site Favorites flag; deferred.' }
+];
+
+const cols = [
+  { id: 'done', name: 'Done',          tone: '#1D9E75' },
+  { id: 'wip',  name: 'In progress',   tone: '#378ADD' },
+  { id: 'wait', name: 'Awaiting you',  tone: '#BA7517' },
+  { id: 'back', name: 'Backlog',       tone: '#888780' }
+];
+
+let activeProj = 'all';
+
+function renderSummary() {
+  const total = tasks.length;
+  const done = tasks.filter(t => t.col === 'done').length;
+  const wip = tasks.filter(t => t.col === 'wip').length;
+  const wait = tasks.filter(t => t.col === 'wait').length;
+  document.getElementById('summary').innerHTML = `
+    <div class="stat"><span class="stat-label">Total</span><div class="stat-value">${total}</div></div>
+    <div class="stat"><span class="stat-label">Shipped</span><div class="stat-value">${done}</div></div>
+    <div class="stat"><span class="stat-label">Active</span><div class="stat-value">${wip}</div></div>
+    <div class="stat"><span class="stat-label">On you</span><div class="stat-value">${wait}</div></div>
+  `;
+}
+
+function renderFilters() {
+  const counts = {};
+  tasks.forEach(t => { counts[t.proj] = (counts[t.proj] || 0) + 1; });
+  let html = `<button class="chip ${activeProj === 'all' ? 'active' : ''}" data-proj="all">All <span style="opacity:.7">${tasks.length}</span></button>`;
+  Object.keys(projects).forEach(k => {
+    const p = projects[k];
+    const c = counts[k] || 0;
+    html += `<button class="chip ${activeProj === k ? 'active' : ''}" data-proj="${k}"><span class="dot" style="background:${p.color}"></span>${p.name} <span style="opacity:.7">${c}</span></button>`;
+  });
+  const el = document.getElementById('filters');
+  el.innerHTML = html;
+  el.querySelectorAll('.chip').forEach(b => {
+    b.addEventListener('click', () => {
+      activeProj = b.dataset.proj;
+      renderFilters();
+      renderGrid();
+    });
+  });
+}
+
+function renderGrid() {
+  const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
+  document.getElementById('grid').innerHTML = cols.map(col => {
+    const colTasks = filtered.filter(t => t.col === col.id);
+    const cards = colTasks.map(t => {
+      const p = projects[t.proj];
+      const pri = priorities[t.pri];
+      return `
+        <div class="card">
+          <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
+          <p class="card-title">${escapeHtml(t.t)}</p>
+          <p class="card-sub">${escapeHtml(t.s)}</p>
+          <div class="card-foot">
+            <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="empty">Nothing here</div>';
+    return `
+      <div class="col">
+        <div class="col-head">
+          <span class="col-name" style="color:${col.tone}">${col.name}</span>
+          <span class="col-count">${colTasks.length}</span>
+        </div>
+        ${cards}
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+renderSummary();
+renderFilters();
+renderGrid();
+</script>
+</body>
+</html>
