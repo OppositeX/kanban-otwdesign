@@ -847,9 +847,14 @@ function renderGrid() {
   const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
   // Compute visible columns based on archive toggle
   const visibleCols = cols.filter(c => !c.hidden || (c.id === 'archive' && archiveVisible));
-  // Update grid columns count for layout
+  // Update grid columns count for layout — but respect mobile breakpoint (single column stack)
   const gridEl = document.getElementById('grid');
-  gridEl.style.gridTemplateColumns = `repeat(${visibleCols.length}, minmax(0, 1fr))`;
+  const isMobile = window.innerWidth < 900;
+  if (isMobile) {
+    gridEl.style.gridTemplateColumns = '1fr';
+  } else {
+    gridEl.style.gridTemplateColumns = `repeat(${visibleCols.length}, minmax(0, 1fr))`;
+  }
   // Update archive toggle button label + count
   const archiveCount = tasks.filter(t => t.col === 'archive').length;
   const toggleEl = document.getElementById('archive-toggle');
@@ -944,6 +949,13 @@ document.getElementById('archive-toggle').addEventListener('click', () => {
   archiveVisible = !archiveVisible;
   localStorage.setItem('kanban_archive_visible', String(archiveVisible));
   renderGrid();
+});
+
+// Re-render grid on viewport resize so column layout flips between mobile/desktop
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(renderGrid, 150);
 });
 
 renderSummary();
