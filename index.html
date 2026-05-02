@@ -173,6 +173,25 @@ body {
 .act.start:hover { background: rgba(133,183,235,0.12); border-color: rgba(133,183,235,0.4); color: #85B7EB; }
 .act.block:hover { background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.4); color: #E24B4A; }
 .act.note:hover { background: rgba(239,159,39,0.12); border-color: rgba(239,159,39,0.4); color: #EF9F27; }
+.act.archive:hover { background: rgba(120,120,120,0.12); border-color: rgba(120,120,120,0.4); color: #b5b5b0; }
+.archive-toggle {
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 0.5px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: #8a8a85;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  margin-left: auto;
+}
+.archive-toggle:hover { border-color: rgba(255,255,255,0.22); color: #d5d5d0; background: rgba(255,255,255,0.03); }
+.archive-toggle.on { color: #b5b5b0; border-color: rgba(255,255,255,0.18); }
+.archive-toggle .badge { font-size: 10px; opacity: 0.6; }
 .scope {
   margin-top: 10px;
   padding-top: 10px;
@@ -332,6 +351,9 @@ body {
   </div>
   <div class="filters" id="filters"></div>
   <div class="grid" id="grid"></div>
+  <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+    <button class="archive-toggle" id="archive-toggle">Show archive <span class="badge" id="archive-count">0</span></button>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -375,6 +397,11 @@ const projects = {
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd',        label: 'Dashboard repo' },
       { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd-Engine', label: 'Engine repo' }
+    ] },
+  cnvs:     { name: 'CNVS Studio', logo: 'C', logoUrl: null, color: '#534AB7', bg: '#26215C', text: '#CECBF6',
+    links: [
+      { kind: 'github', url: 'https://github.com/GLOO-ooo/CNVS-Studio-v2', label: 'GitHub' },
+      { kind: 'live',   url: 'http://cnvs.local/wp-admin/', label: 'Local WP admin' }
     ] }
 };
 
@@ -392,17 +419,23 @@ const priorities = {
 };
 
 const tasks = [
-  // ===== DONE =====
-  { id: 'HUB-001', col: 'done', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
-  { id: 'HUB-002', col: 'done', proj: 'hub',      pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
-  { id: 'HUB-003', col: 'done', proj: 'hub',      pri: 'med',  t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
-  { id: 'HUB-004', col: 'done', proj: 'hub',      pri: 'med',  t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
-  { id: 'JEP-001', col: 'done', proj: 'jepeto',   pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed. 45s send timeout in v0.8.2.' },
-  { id: 'JEP-002', col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
-  { id: 'JEP-003', col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
-  { id: 'OMN-001', col: 'done', proj: 'omnicity', pri: 'med',  t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live on omnicity-otwdesign.vercel.app.' },
-  { id: 'CLP-001', col: 'done', proj: 'clpr',     pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
-  { id: 'LIC-001', col: 'done', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
+  // ===== DONE (recent) =====
+  { id: 'CLP-100', col: 'done', proj: 'clpr',     pri: 'high', t: 'Wave 5 — Workflow Studio + Cinema + BYOK', s: 'Three commits shipped: Cinema polish + 402 surface · dev-login bypass · picker wheels + per-option icons + prominent prompt. Live at clpr-platform-otwdesign.vercel.app.' },
+  { id: 'LIC-200', col: 'done', proj: 'licenser', pri: 'high', t: 'Per-product architecture refactor — v0.2.0', s: 'Product picker bar on Licenses/Activations/Releases. user_meta persistence + ?product=N deep link. Live.' },
+  { id: 'LIC-201', col: 'done', proj: 'licenser', pri: 'med',  t: 'Design fixes — v0.2.0', s: 'Collapsible cards, fixed-grid alignment, manual subscription override (presets + custom + reason).' },
+  { id: 'HUB-100', col: 'done', proj: 'hub',      pri: 'med',  t: 'Track A v2.4.2 verified', s: 'v2.4.2 fixes verified via task. User-side: hit Plugins → Update on hub.d3v.co.il.' },
+
+  // ===== ARCHIVE (older done items, hidden by default) =====
+  { id: 'HUB-001', col: 'archive', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
+  { id: 'HUB-002', col: 'archive', proj: 'hub',      pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
+  { id: 'HUB-003', col: 'archive', proj: 'hub',      pri: 'med',  t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
+  { id: 'HUB-004', col: 'archive', proj: 'hub',      pri: 'med',  t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
+  { id: 'JEP-001', col: 'archive', proj: 'jepeto',   pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed. 45s send timeout in v0.8.2.' },
+  { id: 'JEP-002', col: 'archive', proj: 'jepeto',   pri: 'med',  t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
+  { id: 'JEP-003', col: 'archive', proj: 'jepeto',   pri: 'med',  t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
+  { id: 'OMN-001', col: 'archive', proj: 'omnicity', pri: 'med',  t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live on omnicity-otwdesign.vercel.app.' },
+  { id: 'CLP-001', col: 'archive', proj: 'clpr',     pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
+  { id: 'LIC-001', col: 'archive', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
 
   // ===== IN PROGRESS =====
   { id: 'JEP-100', col: 'wip', proj: 'jepeto', pri: 'high',
@@ -524,12 +557,20 @@ const tasks = [
       'Redeploy via Vercel'
     ]
   },
-  { id: 'CLP-200', col: 'wait', proj: 'clpr', pri: 'med',
-    t: 'Run Supabase migrations',
-    s: 'supabase-migration-conversations.sql + favorites.sql.',
+  { id: 'CLP-200', col: 'wait', proj: 'clpr', pri: 'high',
+    t: 'CLPR Supabase migrations + Vercel env vars',
+    s: 'Login broken with "Invalid API key" — diagnose Supabase env vars on Vercel. Plus run BYOK + Cinema migrations + set MUAPI keys + dev-login env.',
     scope: [
-      'Run supabase-migration-conversations.sql in CLPR project',
-      'Run supabase-migration-favorites.sql in CLPR project',
+      'Verify NEXT_PUBLIC_SUPABASE_URL set on Vercel',
+      'Verify NEXT_PUBLIC_SUPABASE_ANON_KEY set + matches current Supabase project',
+      'Run supabase-migration-muapi-byok.sql in CLPR project',
+      'Run supabase-migration-cinema-setups.sql in CLPR project',
+      'Set MUAPI_KEY (server-only) on Vercel',
+      'Set MUAPI_KEY_ENCRYPTION_SECRET (openssl rand -hex 32) on Vercel',
+      'Set Preview env: DEV_AUTH_BYPASS=true + DEV_AUTH_EMAIL + DEV_AUTH_PASSWORD + NEXT_PUBLIC_DEV_AUTH_BYPASS',
+      'Top up MUAPI credits if 402 persists',
+      'Run supabase-migration-conversations.sql (older) in CLPR project',
+      'Run supabase-migration-favorites.sql (older) in CLPR project',
       'Confirm tables exist + RLS policies active'
     ]
   },
@@ -554,30 +595,108 @@ const tasks = [
       'Add UI for manual subscription override'
     ]
   },
-  { id: 'HUB-202', col: 'wait', proj: 'hub', pri: 'high',
-    t: 'Upress SSL renewal',
-    s: 'Cert expiry blocking hub.d3v.co.il + 2wheel.it + 108 PBN sites. Ticket open.',
+  { id: 'HUB-202', col: 'wip', proj: 'hub', pri: 'high',
+    t: 'v2.4.3 — HTTPS→HTTP fallback for Child v1.0.8',
+    s: 'NEW. 405 diagnosed: HTTPS perimeter on hub.d3v.co.il broken; HTTP returns 400 (correct). Shipping Child v1.0.8 with auto-fallback while user does cert/Cloudflare fix.',
     scope: [
-      'User: follow up on Upress ticket',
-      'User: confirm cert renewed across all 108 sites',
-      'Claude: re-test outbound from Hub once SSL is back'
+      'Diagnose 405 on hub.d3v.co.il — DONE (HTTPS-only failure)',
+      'Ship Child v1.0.8 with HTTPS→HTTP fallback',
+      'Update default Hub URL to http:// scheme',
+      'Smoke test handshake green on 2wheel.it'
     ]
+  },
+  { id: 'HUB-203', col: 'wait', proj: 'hub', pri: 'high',
+    t: 'Upress SSL renewal OR Cloudflare in front',
+    s: 'Cert/SSL-termination on hub.d3v.co.il broken — POST to wp-json over HTTPS fails. Cloudflare path is permanent fix.',
+    scope: [
+      'Option A: Renew cert in Upress (5 min, vulnerable to future expiry)',
+      'Option B: Put Cloudflare in front (free tier, Full SSL — recommended permanent fix)',
+      'Test: https://hub.d3v.co.il/wp-json/ returns JSON',
+      'Then verify handshake on 2wheel.it'
+    ]
+  },
+
+  // ===== CNVS STUDIO (project #8 — added 2026-05-02) =====
+  { id: 'CNV-001', col: 'archive', proj: 'cnvs', pri: 'high', t: 'v3.0 single-pipeline refactor', s: 'Bundle bypassed during LU; direct-apply + enhanceFromSettings are the only LU sinks. Scene-empty invariant guard active.' },
+  { id: 'CNV-002', col: 'archive', proj: 'cnvs', pri: 'med',  t: 'Design system unification', s: 'cnvs-tokens.css canonical; --ce-* and --cs-* aliased. DESIGN-SYSTEM.md authored.' },
+  { id: 'CNV-003', col: 'archive', proj: 'cnvs', pri: 'med',  t: 'AI Mode chat panel plumbed', s: 'cnvs-ai-chat.js + agent endpoint + mode toggle + usage telemetry. End-to-end test pending.' },
+
+  { id: 'CNV-100', col: 'wait', proj: 'cnvs', pri: 'high',
+    t: 'In-browser verification of v3 refactor',
+    s: 'wireframe/opacity/material_type/view_mode persistence not yet user-confirmed after save → reload. Critical because v3 patch is what unblocks live update.',
+    scope: [
+      'Open settings on a saved scene at cnvs.local',
+      'Edit wireframe → save → reload → verify persists',
+      'Edit opacity → save → reload → verify persists',
+      'Edit material_type → save → reload → verify persists',
+      'Edit view_mode → save → reload → verify persists',
+      'Verify scene-empty guard never fires under normal use',
+      'Re-run Playwright tests in tests/ (likely outdated post-refactor)'
+    ]
+  },
+  { id: 'CNV-101', col: 'wait', proj: 'cnvs', pri: 'med',
+    t: 'AI Mode end-to-end test',
+    s: 'Plumbed but cloud /ai/agent on Fly.io may not exist yet. Fallback to /ai documented but not exercised.',
+    scope: [
+      'Manual mode → AI mode toggle works',
+      'Type "add a red sphere at origin"',
+      'Verify tool-call cards appear in chat',
+      'Verify sphere added to scene',
+      'Switch to Manual mode → sphere editable in panels',
+      'Switch back to AI → conversation resumes from cross-session storage'
+    ]
+  },
+  { id: 'CNV-200', col: 'back', proj: 'cnvs', pri: 'med',
+    t: 'Image→3D direct path (deprecate iframe)',
+    s: 'Build canvas_studio_image_to_3d AJAX + api.cnvs.studio/ai/hunyuan cloud route. Iframe modal still works as fallback.',
+    scope: [
+      'Build canvas_studio_image_to_3d AJAX endpoint',
+      'Build api.cnvs.studio/ai/hunyuan cloud route',
+      'Sideload generated GLB to media library',
+      'Trigger add_element from result',
+      'Deprecate aiframe.cnvs.studio iframe modal'
+    ]
+  },
+  { id: 'CNV-201', col: 'back', proj: 'cnvs', pri: 'low',
+    t: 'Theatre.js Phase 3 — full removal',
+    s: 'Pending. Depends on v1.0 audit + v3 single-pipeline being fully stable. Bridge code in cnvs-theatre-bridge.js is starting point.',
+    scope: [
+      'Write concrete plan in workspace md',
+      'Inventory every Theatre.js touchpoint',
+      'Design replacement state/animation system',
+      'Phased migration with dual-path period',
+      'Remove core-and-studio.js + core-only.min.js once cutover complete'
+    ]
+  },
+  { id: 'CNV-202', col: 'back', proj: 'cnvs', pri: 'low',
+    t: 'Map prop conditional visibility',
+    s: 'Hide bump_scale / normal_scale_x_y when parent map not set.'
+  },
+  { id: 'CNV-203', col: 'back', proj: 'cnvs', pri: 'low',
+    t: 'Stale marble_bust_01.gltf cleanup',
+    s: 'element_3 references 404 textures/bin. Add 404-fetch check or manual cleanup affordance in scene tree.'
+  },
+  { id: 'CNV-204', col: 'back', proj: 'cnvs', pri: 'low',
+    t: 'Settings panel Elementor preview lag',
+    s: 'Two-second AJAX delay on first open. Profile + reduce.'
   },
 
   // ===== BACKLOG / DEFERRED =====
   { id: 'CLP-900', col: 'back', proj: 'clpr', pri: 'low', t: 'Marketing + Agent Studios', s: 'DROPPED — not in upstream. Per user 2026-04-29.' },
-  { id: 'HUB-900', col: 'back', proj: 'hub',  pri: 'low', t: 'Sprint Planner (v2.5.0)', s: 'Deferred to v2.5.0 batch.' },
-  { id: 'HUB-901', col: 'back', proj: 'hub',  pri: 'low', t: 'Favorites feature', s: 'Per-site Favorites flag; deferred.' }
+  { id: 'HUB-900', col: 'back', proj: 'hub',  pri: 'low', t: 'Sprint Planner (v2.5.0)', s: 'Folded into HUB-201.' },
+  { id: 'HUB-901', col: 'back', proj: 'hub',  pri: 'low', t: 'Favorites feature', s: 'Folded into HUB-201.' }
 ];
 
 const cols = [
-  { id: 'done', name: 'Done',          tone: '#5DCAA5' },
-  { id: 'wip',  name: 'In progress',   tone: '#85B7EB' },
-  { id: 'wait', name: 'Awaiting you',  tone: '#EF9F27' },
-  { id: 'back', name: 'Backlog',       tone: '#888780' }
+  { id: 'done',    name: 'Done',         tone: '#5DCAA5' },
+  { id: 'archive', name: 'Archive',      tone: '#888780', hidden: true },
+  { id: 'wip',     name: 'In progress',  tone: '#85B7EB' },
+  { id: 'wait',    name: 'Awaiting you', tone: '#EF9F27' },
+  { id: 'back',    name: 'Backlog',      tone: '#888780' }
 ];
 
 let activeProj = 'all';
+let archiveVisible = localStorage.getItem('kanban_archive_visible') === 'true';
 const expanded = new Set();
 const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
 
@@ -726,7 +845,19 @@ function renderCard(t) {
 
 function renderGrid() {
   const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
-  document.getElementById('grid').innerHTML = cols.map(col => {
+  // Compute visible columns based on archive toggle
+  const visibleCols = cols.filter(c => !c.hidden || (c.id === 'archive' && archiveVisible));
+  // Update grid columns count for layout
+  const gridEl = document.getElementById('grid');
+  gridEl.style.gridTemplateColumns = `repeat(${visibleCols.length}, minmax(0, 1fr))`;
+  // Update archive toggle button label + count
+  const archiveCount = tasks.filter(t => t.col === 'archive').length;
+  const toggleEl = document.getElementById('archive-toggle');
+  if (toggleEl) {
+    toggleEl.classList.toggle('on', archiveVisible);
+    toggleEl.innerHTML = `${archiveVisible ? 'Hide' : 'Show'} archive <span class="badge">${archiveCount}</span>`;
+  }
+  gridEl.innerHTML = visibleCols.map(col => {
     const colTasks = filtered.filter(t => t.col === col.id);
     const cards = colTasks.map(renderCard).join('') || '<div class="empty">Nothing here</div>';
     return `
@@ -807,6 +938,13 @@ function renderQlinks() {
     `;
   }).join('');
 }
+
+// Wire archive toggle
+document.getElementById('archive-toggle').addEventListener('click', () => {
+  archiveVisible = !archiveVisible;
+  localStorage.setItem('kanban_archive_visible', String(archiveVisible));
+  renderGrid();
+});
 
 renderSummary();
 renderQlinks();
