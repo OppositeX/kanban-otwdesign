@@ -217,6 +217,66 @@ body {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 .empty { font-size: 12px; color: #5a5a55; text-align: center; padding: 1.5rem 0; font-style: italic; }
+
+/* Quick links grid */
+.qlinks-wrap { margin-bottom: 18px; }
+.qlinks-h {
+  font-size: 11px;
+  color: #8a8a85;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.qlinks {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+.qcard {
+  background: #16161a;
+  border: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: border-color 0.1s, transform 0.05s;
+}
+.qcard:hover { border-color: rgba(255,255,255,0.22); }
+.qlogo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+  color: #fff;
+}
+.qname { font-size: 12px; font-weight: 500; color: #efefed; margin-bottom: 8px; line-height: 1.2; }
+.qlinks-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.qlink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #1f1f24;
+  border: 0.5px solid rgba(255,255,255,0.08);
+  color: #b5b5b0;
+  text-decoration: none;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.qlink:hover { background: #2a2a30; color: #f0f0ee; border-color: rgba(255,255,255,0.22); }
+.qlink svg { width: 14px; height: 14px; }
 .toast {
   position: fixed;
   bottom: 20px;
@@ -241,6 +301,10 @@ body {
   .title { font-size: 19px; }
   .act { font-size: 12px; padding: 5px 10px; }
   .card-id { font-size: 11px; padding: 3px 7px; }
+  .qlinks { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 600px) and (max-width: 1100px) {
+  .qlinks { grid-template-columns: repeat(4, 1fr); }
 }
 </style>
 </head>
@@ -253,6 +317,10 @@ body {
     </div>
   </div>
   <div class="summary" id="summary"></div>
+  <div class="qlinks-wrap">
+    <div class="qlinks-h">Quick links</div>
+    <div class="qlinks" id="qlinks"></div>
+  </div>
   <div class="banner">
     <span class="banner-dot"></span>
     Tap a card to expand its checklist. Tap the ID pill to copy. Action chips ping Claude with the task ID — opens Claude app with the request prefilled.
@@ -266,13 +334,50 @@ body {
 const CLAUDE_URL = 'https://claude.ai/new?q=';
 
 const projects = {
-  jepeto:   { name: 'Jepeto',   color: '#7F77DD', bg: '#3C3489', text: '#CECBF6' },
-  hub:      { name: 'PBN Hub',  color: '#1D9E75', bg: '#085041', text: '#9FE1CB' },
-  omnicity: { name: 'Omnicity', color: '#D85A30', bg: '#712B13', text: '#F5C4B3' },
-  clpr:     { name: 'CLPR',     color: '#D4537E', bg: '#72243E', text: '#F4C0D1' },
-  voyc:     { name: 'VOYC',     color: '#378ADD', bg: '#0C447C', text: '#B5D4F4' },
-  licenser: { name: 'Licenser', color: '#BA7517', bg: '#633806', text: '#FAC775' },
-  songbyrd: { name: 'Songbyrd', color: '#639922', bg: '#27500A', text: '#C0DD97' }
+  jepeto:   { name: 'Jepeto',   logo: 'J', color: '#7F77DD', bg: '#3C3489', text: '#CECBF6',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/jepeto-wp', label: 'GitHub' },
+      { kind: 'live',   url: 'http://cnvs.local/wp-admin/', label: 'Local WP admin' }
+    ] },
+  hub:      { name: 'PBN Hub',  logo: 'H', color: '#1D9E75', bg: '#085041', text: '#9FE1CB',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub', label: 'GitHub (source)' },
+      { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub-releases', label: 'GitHub (releases proxy)' },
+      { kind: 'live',   url: 'http://hub.d3v.co.il/wp-admin/', label: 'WP admin' }
+    ] },
+  omnicity: { name: 'Omnicity', logo: 'O', color: '#D85A30', bg: '#712B13', text: '#F5C4B3',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/omnicity', label: 'GitHub' },
+      { kind: 'vercel', url: 'https://omnicity-otwdesign.vercel.app', label: 'Live' }
+    ] },
+  clpr:     { name: 'CLPR',     logo: 'C', color: '#D4537E', bg: '#72243E', text: '#F4C0D1',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/clpr-platform', label: 'GitHub' },
+      { kind: 'vercel', url: 'https://clpr-platform-otwdesign.vercel.app', label: 'Live' }
+    ] },
+  voyc:     { name: 'VOYC',     logo: 'V', color: '#378ADD', bg: '#0C447C', text: '#B5D4F4',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/voic-platform', label: 'GitHub' },
+      { kind: 'vercel', url: 'https://dashboard-otwdesign.vercel.app', label: 'Frontend' },
+      { kind: 'render', url: 'https://api.voic.ai', label: 'API (Render)' }
+    ] },
+  licenser: { name: 'Licenser', logo: 'L', color: '#BA7517', bg: '#633806', text: '#FAC775',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/licenser', label: 'GitHub' },
+      { kind: 'live',   url: 'http://licenser.d3v.co.il/wp-admin/', label: 'WP admin' }
+    ] },
+  songbyrd: { name: 'Songbyrd', logo: 'S', color: '#639922', bg: '#27500A', text: '#C0DD97',
+    links: [
+      { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd',        label: 'Dashboard repo' },
+      { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd-Engine', label: 'Engine repo' }
+    ] }
+};
+
+const linkIcons = {
+  github: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>',
+  vercel: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l7 13H1L8 1z"/></svg>',
+  render: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="3.5"/><path d="M8 1v4M8 11v4M1 8h4M11 8h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>',
+  live:   '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4v4M13 3l-7 7M11 9v4H3V5h4"/></svg>'
 };
 
 const priorities = {
@@ -676,7 +781,25 @@ function renderGrid() {
   });
 }
 
+function renderQlinks() {
+  const el = document.getElementById('qlinks');
+  el.innerHTML = Object.keys(projects).map(k => {
+    const p = projects[k];
+    const linksHtml = (p.links || []).map(l =>
+      `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}">${linkIcons[l.kind] || linkIcons.live}</a>`
+    ).join('');
+    return `
+      <div class="qcard">
+        <div class="qlogo" style="background:${p.color}">${p.logo}</div>
+        <div class="qname">${p.name}</div>
+        <div class="qlinks-row">${linksHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
 renderSummary();
+renderQlinks();
 renderFilters();
 renderGrid();
 </script>
