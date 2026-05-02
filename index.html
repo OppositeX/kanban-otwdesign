@@ -236,6 +236,37 @@ body {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 .empty { font-size: 12px; color: #5a5a55; text-align: center; padding: 1.5rem 0; font-style: italic; }
+.timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 0.5px solid rgba(255,255,255,0.06);
+}
+.timer.live {
+  background: rgba(133,183,235,0.08);
+  border-color: rgba(133,183,235,0.25);
+  color: #85B7EB;
+}
+.timer.live .pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #85B7EB;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.timer.shipped {
+  background: rgba(93,202,165,0.08);
+  border-color: rgba(93,202,165,0.25);
+  color: #5DCAA5;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
 
 /* Quick links grid */
 .qlinks-wrap { margin-bottom: 18px; }
@@ -420,10 +451,10 @@ const priorities = {
 
 const tasks = [
   // ===== DONE (recent) =====
-  { id: 'CLP-100', col: 'done', proj: 'clpr',     pri: 'high', t: 'Wave 5 — Workflow Studio + Cinema + BYOK', s: 'Three commits shipped: Cinema polish + 402 surface · dev-login bypass · picker wheels + per-option icons + prominent prompt. Live at clpr-platform-otwdesign.vercel.app.' },
-  { id: 'LIC-200', col: 'done', proj: 'licenser', pri: 'high', t: 'Per-product architecture refactor — v0.2.0', s: 'Product picker bar on Licenses/Activations/Releases. user_meta persistence + ?product=N deep link. Live.' },
-  { id: 'LIC-201', col: 'done', proj: 'licenser', pri: 'med',  t: 'Design fixes — v0.2.0', s: 'Collapsible cards, fixed-grid alignment, manual subscription override (presets + custom + reason).' },
-  { id: 'HUB-100', col: 'done', proj: 'hub',      pri: 'med',  t: 'Track A v2.4.2 verified', s: 'v2.4.2 fixes verified via task. User-side: hit Plugins → Update on hub.d3v.co.il.' },
+  { id: 'CLP-100', col: 'done', proj: 'clpr',     pri: 'high', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-02T18:00:00Z', t: 'Wave 5 — Workflow Studio + Cinema + BYOK', s: 'Three commits shipped: Cinema polish + 402 surface · dev-login bypass · picker wheels + per-option icons + prominent prompt. Live at clpr-platform-otwdesign.vercel.app.' },
+  { id: 'LIC-200', col: 'done', proj: 'licenser', pri: 'high', startedAt: '2026-05-02T14:00:00Z', shippedAt: '2026-05-02T17:00:00Z', t: 'Per-product architecture refactor — v0.2.0', s: 'Product picker bar on Licenses/Activations/Releases. user_meta persistence + ?product=N deep link. Live.' },
+  { id: 'LIC-201', col: 'done', proj: 'licenser', pri: 'med',  startedAt: '2026-05-02T14:00:00Z', shippedAt: '2026-05-02T17:00:00Z', t: 'Design fixes — v0.2.0', s: 'Collapsible cards, fixed-grid alignment, manual subscription override (presets + custom + reason).' },
+  { id: 'HUB-100', col: 'done', proj: 'hub',      pri: 'med',  startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-02T15:00:00Z', t: 'Track A v2.4.2 verified', s: 'v2.4.2 fixes verified via task. User-side: hit Plugins → Update on hub.d3v.co.il.' },
 
   // ===== ARCHIVE (older done items, hidden by default) =====
   { id: 'HUB-001', col: 'archive', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
@@ -438,10 +469,11 @@ const tasks = [
   { id: 'LIC-001', col: 'archive', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
 
   // ===== IN PROGRESS =====
-  { id: 'JEP-100', col: 'wip', proj: 'jepeto', pri: 'high',
+  { id: 'JEP-100', col: 'wip', proj: 'jepeto', pri: 'high', startedAt: '2026-04-30T20:00:00Z',
     t: 'v1.0 roadmap — read + action tools',
-    s: 'The v0.8.5 → v0.9.2 build-up to v1.0.',
+    s: 'The v0.8.5 → v0.9.2 build-up to v1.0. Just nudged back to life after rate-limit stall.',
     scope: [
+      'Fix PUC 401 (private repo placeholder URL bug)',
       'Fix off-canvas widget visibility bug (v0.8.5)',
       'Wire read tools (Page Doctor, content read)',
       'Wire action tools (publish, schedule, edit)',
@@ -452,32 +484,22 @@ const tasks = [
       'Final QA + tag v1.0.0'
     ]
   },
-  { id: 'CLP-100', col: 'wip', proj: 'clpr', pri: 'high',
-    t: 'Wave 5 — Workflow Studio port',
-    s: 'Port from upstream verbatim, lazy-load, auth-gated. No invented features.',
-    scope: [
-      'Locate Workflow Studio in upstream repo',
-      'Port reactflow + node graph components',
-      'Lazy-load route (only loads when navigated to)',
-      'Gate behind auth — anon users see upgrade prompt',
-      'Match upstream exactly — no UI deviations',
-      'Smoke test on clpr-platform-otwdesign.vercel.app'
-    ]
-  },
-  { id: 'VOY-100', col: 'wip', proj: 'voyc', pri: 'high',
+  { id: 'VOY-100', col: 'wip', proj: 'voyc', pri: 'high', startedAt: '2026-04-30T20:00:00Z',
     t: 'Supabase Auth migration — Phase 1',
-    s: 'Project setup in Call Event org, enable Google OAuth, URL config.',
+    s: 'Blocked: free-tier 2-project cap. New "Voyc" org created but project creation blocked. Awaiting user decision (pause/upgrade/park).',
     scope: [
-      'Create voyc Supabase project in org oozhapqblkithfyhafyz',
+      'Create new free org "Voyc" — DONE',
+      'Resolve free-tier 2-project cap (user decision)',
+      'Create voyc Supabase project in eu-west-1',
       'Enable Google OAuth provider',
       'Configure redirect URLs (dashboard-otwdesign.vercel.app + localhost)',
       'Test signup flow end-to-end',
       'Document creds in voyc memory file'
     ]
   },
-  { id: 'VOY-101', col: 'wip', proj: 'voyc', pri: 'med',
+  { id: 'VOY-101', col: 'wip', proj: 'voyc', pri: 'med', startedAt: '2026-04-30T20:00:00Z',
     t: 'Migration plan doc — Phase 2',
-    s: 'Inspect voic-platform auth code, write plan for sign-off.',
+    s: 'Inspect voic-platform auth code, write plan for sign-off. Starts after Phase 1 unblocks.',
     scope: [
       'Read current JWT auth flow in voic-platform',
       'Map JWT touchpoints to Supabase equivalents',
@@ -485,7 +507,7 @@ const tasks = [
       'Surface to user for sign-off before Phase 3'
     ]
   },
-  { id: 'SBR-100', col: 'wip', proj: 'songbyrd', pri: 'high',
+  { id: 'SBR-100', col: 'wip', proj: 'songbyrd', pri: 'high', startedAt: '2026-04-30T20:00:00Z',
     t: 'v0.1.0 push + provision',
     s: 'Push both repos, Render GPU service, Vercel + Supabase, end-to-end smoke test.',
     scope: [
@@ -495,16 +517,6 @@ const tasks = [
       'Wire shared HMAC secret between Vercel and Render',
       'Provision Supabase project (in Call Event org)',
       'End-to-end smoke test: clone voice → synth → playback'
-    ]
-  },
-  { id: 'HUB-100', col: 'wip', proj: 'hub', pri: 'med',
-    t: 'Track A v2.4.2 verification',
-    s: 'Confirm 429 surfacing on hub.d3v.co.il across child sites.',
-    scope: [
-      'Trigger 429 on Gemini key (rate limit)',
-      'Confirm Hub UI shows 429 with provider name',
-      'Verify on 3+ child sites',
-      'Tag verification complete'
     ]
   },
 
@@ -595,9 +607,9 @@ const tasks = [
       'Add UI for manual subscription override'
     ]
   },
-  { id: 'HUB-202', col: 'wip', proj: 'hub', pri: 'high',
-    t: 'v2.4.3 — HTTPS→HTTP fallback for Child v1.0.8',
-    s: 'NEW. 405 diagnosed: HTTPS perimeter on hub.d3v.co.il broken; HTTP returns 400 (correct). Shipping Child v1.0.8 with auto-fallback while user does cert/Cloudflare fix.',
+  { id: 'HUB-202', col: 'wip', proj: 'hub', pri: 'high', startedAt: '2026-05-02T17:00:00Z',
+    t: 'Child v1.0.8 — HTTPS→HTTP fallback',
+    s: 'v1.0.8 zip published to public proxy. SOURCE PUSH still pending — sub-agent bash can\'t reach GitHub. User-side: upload zip to 2wheel.it via wp-admin to validate fallback.',
     scope: [
       'Diagnose 405 on hub.d3v.co.il — DONE (HTTPS-only failure)',
       'Ship Child v1.0.8 with HTTPS→HTTP fallback',
@@ -788,6 +800,30 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
+function formatElapsed(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (day >= 1) return `${day}d ${hr % 24}h`;
+  if (hr >= 1) return `${hr}h ${min % 60}m`;
+  if (min >= 1) return `${min}m`;
+  return `${sec}s`;
+}
+
+function renderTimer(task) {
+  if (task.col === 'wip' && task.startedAt) {
+    const elapsed = Date.now() - new Date(task.startedAt).getTime();
+    return `<span class="timer live"><span class="pulse"></span>${formatElapsed(elapsed)}</span>`;
+  }
+  if (task.col === 'done' && task.startedAt && task.shippedAt) {
+    const elapsed = new Date(task.shippedAt).getTime() - new Date(task.startedAt).getTime();
+    return `<span class="timer shipped">✓ ${formatElapsed(elapsed)}</span>`;
+  }
+  return '';
+}
+
 function scopeProgress(task) {
   if (!task.scope || !task.scope.length) return null;
   const taskChecks = checks[task.id] || {};
@@ -821,11 +857,15 @@ function renderCard(t) {
     }
   }
 
+  const timerHtml = renderTimer(t);
   return `
     <div class="card ${isExpanded ? 'expanded' : ''}" data-task="${t.id}">
       <div class="card-top">
         <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
-        <span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          ${timerHtml}
+          <span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span>
+        </div>
       </div>
       <p class="card-title" data-toggle="${t.id}">${escapeHtml(t.t)}${progStr}</p>
       <p class="card-sub" data-toggle="${t.id}">${escapeHtml(t.s)}</p>
@@ -957,6 +997,20 @@ window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(renderGrid, 150);
 });
+
+// Tick the live timers every 30 seconds — only update timer pills, not the whole grid
+setInterval(() => {
+  document.querySelectorAll('.timer.live').forEach(el => {
+    const card = el.closest('.card');
+    if (!card) return;
+    const id = card.dataset.task;
+    const task = tasks.find(t => t.id === id);
+    if (!task || !task.startedAt) return;
+    const elapsed = Date.now() - new Date(task.startedAt).getTime();
+    const pulse = el.querySelector('.pulse');
+    el.innerHTML = (pulse ? '<span class="pulse"></span>' : '') + formatElapsed(elapsed);
+  });
+}, 30000);
 
 renderSummary();
 renderQlinks();
