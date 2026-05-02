@@ -248,8 +248,8 @@ body {
 }
 .qcard:hover { border-color: rgba(255,255,255,0.22); }
 .qlogo {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -259,7 +259,12 @@ body {
   letter-spacing: -0.5px;
   margin-bottom: 8px;
   color: #fff;
+  overflow: hidden;
+  flex: none;
 }
+.qlogo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; box-sizing: border-box; }
+.qlogo.bare { background: transparent !important; padding: 0; }
+.qlogo.bare img { padding: 0; }
 .qname { font-size: 12px; font-weight: 500; color: #efefed; margin-bottom: 8px; line-height: 1.2; }
 .qlinks-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
 .qlink {
@@ -334,39 +339,39 @@ body {
 const CLAUDE_URL = 'https://claude.ai/new?q=';
 
 const projects = {
-  jepeto:   { name: 'Jepeto',   logo: 'J', color: '#7F77DD', bg: '#3C3489', text: '#CECBF6',
+  jepeto:   { name: 'Jepeto',   logo: 'J', logoUrl: 'logos/jepeto.webp', color: '#7F77DD', bg: '#3C3489', text: '#CECBF6',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/jepeto-wp', label: 'GitHub' },
       { kind: 'live',   url: 'http://cnvs.local/wp-admin/', label: 'Local WP admin' }
     ] },
-  hub:      { name: 'PBN Hub',  logo: 'H', color: '#1D9E75', bg: '#085041', text: '#9FE1CB',
+  hub:      { name: 'PBN Hub',  logo: 'H', logoUrl: 'logos/hub.svg', color: '#1D9E75', bg: '#085041', text: '#9FE1CB',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub', label: 'GitHub (source)' },
       { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub-releases', label: 'GitHub (releases proxy)' },
       { kind: 'live',   url: 'http://hub.d3v.co.il/wp-admin/', label: 'WP admin' }
     ] },
-  omnicity: { name: 'Omnicity', logo: 'O', color: '#D85A30', bg: '#712B13', text: '#F5C4B3',
+  omnicity: { name: 'Omnicity', logo: 'O', logoUrl: 'logos/omnicity.webp', color: '#D85A30', bg: '#712B13', text: '#F5C4B3',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/omnicity', label: 'GitHub' },
       { kind: 'vercel', url: 'https://omnicity-otwdesign.vercel.app', label: 'Live' }
     ] },
-  clpr:     { name: 'CLPR',     logo: 'C', color: '#D4537E', bg: '#72243E', text: '#F4C0D1',
+  clpr:     { name: 'CLPR',     logo: 'C', logoUrl: 'logos/clpr.webp', color: '#D4537E', bg: '#72243E', text: '#F4C0D1',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/clpr-platform', label: 'GitHub' },
       { kind: 'vercel', url: 'https://clpr-platform-otwdesign.vercel.app', label: 'Live' }
     ] },
-  voyc:     { name: 'VOYC',     logo: 'V', color: '#378ADD', bg: '#0C447C', text: '#B5D4F4',
+  voyc:     { name: 'VOYC',     logo: 'V', logoUrl: 'logos/voyc.svg', color: '#378ADD', bg: '#0C447C', text: '#B5D4F4',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/voic-platform', label: 'GitHub' },
       { kind: 'vercel', url: 'https://dashboard-otwdesign.vercel.app', label: 'Frontend' },
       { kind: 'render', url: 'https://api.voic.ai', label: 'API (Render)' }
     ] },
-  licenser: { name: 'Licenser', logo: 'L', color: '#BA7517', bg: '#633806', text: '#FAC775',
+  licenser: { name: 'Licenser', logo: 'L', logoUrl: null, color: '#BA7517', bg: '#633806', text: '#FAC775',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/licenser', label: 'GitHub' },
       { kind: 'live',   url: 'http://licenser.d3v.co.il/wp-admin/', label: 'WP admin' }
     ] },
-  songbyrd: { name: 'Songbyrd', logo: 'S', color: '#639922', bg: '#27500A', text: '#C0DD97',
+  songbyrd: { name: 'Songbyrd', logo: 'S', logoUrl: null, color: '#639922', bg: '#27500A', text: '#C0DD97',
     links: [
       { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd',        label: 'Dashboard repo' },
       { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd-Engine', label: 'Engine repo' }
@@ -788,9 +793,14 @@ function renderQlinks() {
     const linksHtml = (p.links || []).map(l =>
       `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}">${linkIcons[l.kind] || linkIcons.live}</a>`
     ).join('');
+    const logoInner = p.logoUrl
+      ? `<img src="${p.logoUrl}" alt="${escapeHtml(p.name)}" onerror="this.parentElement.classList.remove('bare');this.replaceWith(document.createTextNode('${p.logo}'));">`
+      : p.logo;
+    const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
+    const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
     return `
       <div class="qcard">
-        <div class="qlogo" style="background:${p.color}">${p.logo}</div>
+        <div class="${logoClass}" style="${logoStyle}">${logoInner}</div>
         <div class="qname">${p.name}</div>
         <div class="qlinks-row">${linksHtml}</div>
       </div>
