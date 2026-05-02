@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Project tasks — kanban</title>
 <style>
-:root { color-scheme: light; }
+:root { color-scheme: dark; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  background: #fafaf7;
-  color: #1a1a1a;
+  background: #0b0b0d;
+  color: #e8e8e6;
   -webkit-font-smoothing: antialiased;
   padding: 20px;
   line-height: 1.4;
@@ -26,38 +26,52 @@ body {
   gap: 12px;
 }
 .title { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.2px; }
-.meta { font-size: 13px; color: #6b6b66; margin-top: 4px; }
+.meta { font-size: 13px; color: #8a8a85; margin-top: 4px; }
 .summary {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .stat {
-  background: #fff;
-  border: 0.5px solid rgba(0,0,0,0.08);
+  background: #16161a;
+  border: 0.5px solid rgba(255,255,255,0.08);
   border-radius: 10px;
   padding: 12px 14px;
 }
-.stat-label { font-size: 11px; color: #6b6b66; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-label { font-size: 11px; color: #8a8a85; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
 .stat-value { font-size: 22px; font-weight: 500; }
-.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.banner {
+  background: #16161a;
+  border: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: #9c9c97;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.5;
+}
+.banner-dot { width: 6px; height: 6px; border-radius: 50%; background: #5DCAA5; flex: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .chip {
   font-size: 12px;
   padding: 6px 11px;
   border-radius: 999px;
-  border: 0.5px solid rgba(0,0,0,0.12);
-  background: #fff;
+  border: 0.5px solid rgba(255,255,255,0.12);
+  background: #16161a;
   cursor: pointer;
-  color: #4a4a45;
+  color: #b5b5b0;
   display: inline-flex;
   align-items: center;
   gap: 7px;
   font-family: inherit;
 }
-.chip:hover { border-color: rgba(0,0,0,0.25); color: #1a1a1a; }
-.chip.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-.chip.active .dot { box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+.chip:hover { border-color: rgba(255,255,255,0.28); color: #f0f0ee; }
+.chip.active { background: #f0f0ee; color: #0b0b0d; border-color: #f0f0ee; }
+.chip.active .dot { box-shadow: 0 0 0 2px rgba(0,0,0,0.25); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .grid {
   display: grid;
@@ -66,10 +80,11 @@ body {
   align-items: start;
 }
 .col {
-  background: #f1f0eb;
+  background: #131316;
   border-radius: 12px;
   padding: 12px;
   min-height: 220px;
+  border: 0.5px solid rgba(255,255,255,0.04);
 }
 .col-head {
   display: flex;
@@ -81,48 +96,151 @@ body {
 .col-name { font-size: 13px; font-weight: 500; }
 .col-count {
   font-size: 11px;
-  color: #6b6b66;
-  background: #fff;
+  color: #8a8a85;
+  background: #1f1f24;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 0.5px solid rgba(0,0,0,0.08);
+  border: 0.5px solid rgba(255,255,255,0.06);
 }
 .card {
-  background: #fff;
+  background: #1c1c20;
   border-radius: 8px;
-  border: 0.5px solid rgba(0,0,0,0.08);
+  border: 0.5px solid rgba(255,255,255,0.06);
   padding: 10px 12px;
   margin-bottom: 8px;
-  transition: border-color 0.1s, transform 0.05s;
+  transition: border-color 0.1s;
 }
-.card:hover { border-color: rgba(0,0,0,0.2); }
+.card.expanded { border-color: rgba(255,255,255,0.18); }
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
 .card-tag {
   font-size: 10px;
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 999px;
   letter-spacing: 0.2px;
-  display: inline-block;
-  margin-bottom: 6px;
 }
-.card-title { font-size: 13px; font-weight: 500; line-height: 1.35; margin: 0 0 4px; }
-.card-sub { font-size: 12px; color: #6b6b66; line-height: 1.4; margin: 0; }
+.card-id {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  color: #6f6f6a;
+  background: #0f0f12;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 0.5px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  user-select: all;
+  transition: color 0.1s, border-color 0.1s;
+}
+.card-id:hover { color: #b5b5b0; border-color: rgba(255,255,255,0.18); }
+.card-id.copied { color: #5DCAA5; border-color: rgba(93,202,165,0.4); }
+.card-title { font-size: 13px; font-weight: 500; line-height: 1.35; margin: 0 0 4px; color: #efefed; cursor: pointer; }
+.card-sub { font-size: 12px; color: #9c9c97; line-height: 1.4; margin: 0; cursor: pointer; }
 .card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
   font-size: 11px;
-  color: #888;
+  color: #6f6f6a;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .pri { display: inline-flex; align-items: center; gap: 5px; }
 .pri-dot { width: 6px; height: 6px; border-radius: 50%; }
-.empty { font-size: 12px; color: #999; text-align: center; padding: 1.5rem 0; font-style: italic; }
+.actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.act {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 0.5px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: #b5b5b0;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.act:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.22); color: #f0f0ee; }
+.act.done:hover { background: rgba(93,202,165,0.12); border-color: rgba(93,202,165,0.4); color: #5DCAA5; }
+.act.start:hover { background: rgba(133,183,235,0.12); border-color: rgba(133,183,235,0.4); color: #85B7EB; }
+.act.block:hover { background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.4); color: #E24B4A; }
+.act.note:hover { background: rgba(239,159,39,0.12); border-color: rgba(239,159,39,0.4); color: #EF9F27; }
+.scope {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 0.5px solid rgba(255,255,255,0.07);
+}
+.scope-label {
+  font-size: 10px;
+  color: #6f6f6a;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 12px;
+  color: #c5c5c0;
+  line-height: 1.4;
+}
+.check input {
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: #5DCAA5;
+  cursor: pointer;
+}
+.check.checked .check-text {
+  text-decoration: line-through;
+  color: #6f6f6a;
+}
+.check-text { flex: 1; }
+.scope-empty { font-size: 11px; color: #5a5a55; font-style: italic; }
+.scope-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #8a8a85;
+  margin-left: 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.empty { font-size: 12px; color: #5a5a55; text-align: center; padding: 1.5rem 0; font-style: italic; }
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1c1c20;
+  border: 0.5px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #e8e8e6;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+.toast.show { opacity: 1; }
 @media (max-width: 900px) {
   .grid { grid-template-columns: 1fr; }
   .summary { grid-template-columns: repeat(2, 1fr); }
   body { padding: 14px; }
   .title { font-size: 19px; }
+  .act { font-size: 12px; padding: 5px 10px; }
+  .card-id { font-size: 11px; padding: 3px 7px; }
 }
 </style>
 </head>
@@ -131,77 +249,278 @@ body {
   <div class="head">
     <div>
       <h1 class="title">Project tasks</h1>
-      <p class="meta" id="meta">7 active projects · last updated 2026-04-30</p>
+      <p class="meta">7 active projects · last updated 2026-04-30</p>
     </div>
   </div>
   <div class="summary" id="summary"></div>
+  <div class="banner">
+    <span class="banner-dot"></span>
+    Tap a card to expand its checklist. Tap the ID pill to copy. Action chips ping Claude with the task ID — opens Claude app with the request prefilled.
+  </div>
   <div class="filters" id="filters"></div>
   <div class="grid" id="grid"></div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
+const CLAUDE_URL = 'https://claude.ai/new?q=';
+
 const projects = {
-  jepeto:   { name: 'Jepeto',   color: '#7F77DD', bg: '#EEEDFE', text: '#26215C' },
-  hub:      { name: 'PBN Hub',  color: '#1D9E75', bg: '#E1F5EE', text: '#04342C' },
-  omnicity: { name: 'Omnicity', color: '#D85A30', bg: '#FAECE7', text: '#4A1B0C' },
-  clpr:     { name: 'CLPR',     color: '#D4537E', bg: '#FBEAF0', text: '#4B1528' },
-  voyc:     { name: 'VOYC',     color: '#378ADD', bg: '#E6F1FB', text: '#042C53' },
-  licenser: { name: 'Licenser', color: '#BA7517', bg: '#FAEEDA', text: '#412402' },
-  songbyrd: { name: 'Songbyrd', color: '#639922', bg: '#EAF3DE', text: '#173404' }
+  jepeto:   { name: 'Jepeto',   color: '#7F77DD', bg: '#3C3489', text: '#CECBF6' },
+  hub:      { name: 'PBN Hub',  color: '#1D9E75', bg: '#085041', text: '#9FE1CB' },
+  omnicity: { name: 'Omnicity', color: '#D85A30', bg: '#712B13', text: '#F5C4B3' },
+  clpr:     { name: 'CLPR',     color: '#D4537E', bg: '#72243E', text: '#F4C0D1' },
+  voyc:     { name: 'VOYC',     color: '#378ADD', bg: '#0C447C', text: '#B5D4F4' },
+  licenser: { name: 'Licenser', color: '#BA7517', bg: '#633806', text: '#FAC775' },
+  songbyrd: { name: 'Songbyrd', color: '#639922', bg: '#27500A', text: '#C0DD97' }
 };
 
 const priorities = {
-  high: { label: 'High', color: '#A32D2D' },
-  med:  { label: 'Med',  color: '#BA7517' },
+  high: { label: 'High', color: '#E24B4A' },
+  med:  { label: 'Med',  color: '#EF9F27' },
   low:  { label: 'Low',  color: '#888780' }
 };
 
 const tasks = [
-  // DONE
-  { col: 'done', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
-  { col: 'done', proj: 'hub',      pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
-  { col: 'done', proj: 'hub',      pri: 'med',  t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
-  { col: 'done', proj: 'hub',      pri: 'med',  t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
-  { col: 'done', proj: 'jepeto',   pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed. 45s send timeout in v0.8.2.' },
-  { col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
-  { col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
-  { col: 'done', proj: 'omnicity', pri: 'med',  t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live on omnicity-otwdesign.vercel.app.' },
-  { col: 'done', proj: 'clpr',     pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
-  { col: 'done', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
+  // ===== DONE =====
+  { id: 'HUB-001', col: 'done', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
+  { id: 'HUB-002', col: 'done', proj: 'hub',      pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
+  { id: 'HUB-003', col: 'done', proj: 'hub',      pri: 'med',  t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
+  { id: 'HUB-004', col: 'done', proj: 'hub',      pri: 'med',  t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
+  { id: 'JEP-001', col: 'done', proj: 'jepeto',   pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed. 45s send timeout in v0.8.2.' },
+  { id: 'JEP-002', col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
+  { id: 'JEP-003', col: 'done', proj: 'jepeto',   pri: 'med',  t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
+  { id: 'OMN-001', col: 'done', proj: 'omnicity', pri: 'med',  t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live on omnicity-otwdesign.vercel.app.' },
+  { id: 'CLP-001', col: 'done', proj: 'clpr',     pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
+  { id: 'LIC-001', col: 'done', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
 
-  // IN PROGRESS
-  { col: 'wip', proj: 'jepeto',   pri: 'high', t: 'v1.0 roadmap — read + action tools', s: 'Off-canvas fix, URL ingestion, image upload, Plan Mode, Page Doctor, Keyword Burst.' },
-  { col: 'wip', proj: 'clpr',     pri: 'high', t: 'Wave 5 — Workflow Studio port', s: 'Port from upstream verbatim, lazy-load, auth-gated. No invented features.' },
-  { col: 'wip', proj: 'voyc',     pri: 'high', t: 'Supabase Auth migration — Phase 1', s: 'Project setup in Call Event org, enable Google OAuth, URL config.' },
-  { col: 'wip', proj: 'voyc',     pri: 'med',  t: 'Migration plan doc — Phase 2', s: 'Inspect voic-platform auth code, write plan for sign-off.' },
-  { col: 'wip', proj: 'songbyrd', pri: 'high', t: 'v0.1.0 push + provision', s: 'Push both repos, Render GPU service, Vercel + Supabase, end-to-end smoke test.' },
-  { col: 'wip', proj: 'hub',      pri: 'med',  t: 'Track A v2.4.2 verification', s: 'Confirm 429 surfacing on hub.d3v.co.il across child sites.' },
+  // ===== IN PROGRESS =====
+  { id: 'JEP-100', col: 'wip', proj: 'jepeto', pri: 'high',
+    t: 'v1.0 roadmap — read + action tools',
+    s: 'The v0.8.5 → v0.9.2 build-up to v1.0.',
+    scope: [
+      'Fix off-canvas widget visibility bug (v0.8.5)',
+      'Wire read tools (Page Doctor, content read)',
+      'Wire action tools (publish, schedule, edit)',
+      'URL ingestion — paste link, parse content',
+      'Image upload from chat',
+      'Plan Mode — multi-step task agent',
+      'Keyword Burst Tool',
+      'Final QA + tag v1.0.0'
+    ]
+  },
+  { id: 'CLP-100', col: 'wip', proj: 'clpr', pri: 'high',
+    t: 'Wave 5 — Workflow Studio port',
+    s: 'Port from upstream verbatim, lazy-load, auth-gated. No invented features.',
+    scope: [
+      'Locate Workflow Studio in upstream repo',
+      'Port reactflow + node graph components',
+      'Lazy-load route (only loads when navigated to)',
+      'Gate behind auth — anon users see upgrade prompt',
+      'Match upstream exactly — no UI deviations',
+      'Smoke test on clpr-platform-otwdesign.vercel.app'
+    ]
+  },
+  { id: 'VOY-100', col: 'wip', proj: 'voyc', pri: 'high',
+    t: 'Supabase Auth migration — Phase 1',
+    s: 'Project setup in Call Event org, enable Google OAuth, URL config.',
+    scope: [
+      'Create voyc Supabase project in org oozhapqblkithfyhafyz',
+      'Enable Google OAuth provider',
+      'Configure redirect URLs (dashboard-otwdesign.vercel.app + localhost)',
+      'Test signup flow end-to-end',
+      'Document creds in voyc memory file'
+    ]
+  },
+  { id: 'VOY-101', col: 'wip', proj: 'voyc', pri: 'med',
+    t: 'Migration plan doc — Phase 2',
+    s: 'Inspect voic-platform auth code, write plan for sign-off.',
+    scope: [
+      'Read current JWT auth flow in voic-platform',
+      'Map JWT touchpoints to Supabase equivalents',
+      'Write migration plan in workspace md',
+      'Surface to user for sign-off before Phase 3'
+    ]
+  },
+  { id: 'SBR-100', col: 'wip', proj: 'songbyrd', pri: 'high',
+    t: 'v0.1.0 push + provision',
+    s: 'Push both repos, Render GPU service, Vercel + Supabase, end-to-end smoke test.',
+    scope: [
+      'Push Songbyrd dashboard repo to OppositeX/Songbyrd',
+      'Push Songbyrd-Engine to OppositeX/Songbyrd-Engine',
+      'Create Render GPU service for engine',
+      'Wire shared HMAC secret between Vercel and Render',
+      'Provision Supabase project (in Call Event org)',
+      'End-to-end smoke test: clone voice → synth → playback'
+    ]
+  },
+  { id: 'HUB-100', col: 'wip', proj: 'hub', pri: 'med',
+    t: 'Track A v2.4.2 verification',
+    s: 'Confirm 429 surfacing on hub.d3v.co.il across child sites.',
+    scope: [
+      'Trigger 429 on Gemini key (rate limit)',
+      'Confirm Hub UI shows 429 with provider name',
+      'Verify on 3+ child sites',
+      'Tag verification complete'
+    ]
+  },
 
-  // AWAITING YOU
-  { col: 'wait', proj: 'hub',      pri: 'high', t: 'Track B — 108-site bulk install', s: 'Need Upress login confirm + canonical site list location.' },
-  { col: 'wait', proj: 'hub',      pri: 'med',  t: 'v2.5.0 features', s: 'Bulk Actions grid, Check All Whois, Sprint Planner, ArticleDraftCard, Favorites.' },
-  { col: 'wait', proj: 'songbyrd', pri: 'high', t: 'Logo folder access', s: 'C:\\Users\\ozomr\\Desktop\\vibe\\songbyrd — needs cowork directory approval.' },
-  { col: 'wait', proj: 'songbyrd', pri: 'med',  t: 'Vapi API key', s: 'Admin settings page reserved; key to be entered later by user.' },
-  { col: 'wait', proj: 'omnicity', pri: 'high', t: 'Vercel env vars for OAuth', s: 'Gmail / Microsoft / TikTok via Meta — user to set in Vercel.' },
-  { col: 'wait', proj: 'clpr',     pri: 'med',  t: 'Run Supabase migrations', s: 'supabase-migration-conversations.sql + favorites.sql.' },
-  { col: 'wait', proj: 'licenser', pri: 'high', t: 'Per-product architecture refactor', s: 'Global product selector at top, all child pages nested per-product.' },
-  { col: 'wait', proj: 'licenser', pri: 'med',  t: 'Design fixes — labels + collapse states', s: 'Remove "straw" labels, collapse cards by default, fix license button alignment, manual sub support.' },
-  { col: 'wait', proj: 'hub',      pri: 'high', t: 'Upress SSL renewal', s: 'Cert expiry blocking hub.d3v.co.il + 2wheel.it + 108 PBN sites. Ticket open.' },
+  // ===== AWAITING YOU =====
+  { id: 'HUB-200', col: 'wait', proj: 'hub', pri: 'high',
+    t: 'Track B — 108-site bulk install',
+    s: 'Need Upress login confirm + canonical site list location.',
+    scope: [
+      'User: confirm Upress login still works',
+      'User: point to canonical 108-site CSV/list',
+      'Claude: bulk-install Hub Child plugin via Chrome MCP'
+    ]
+  },
+  { id: 'HUB-201', col: 'wait', proj: 'hub', pri: 'med',
+    t: 'v2.5.0 features',
+    s: 'Bulk Actions grid, Check All Whois, Sprint Planner, ArticleDraftCard, Favorites.',
+    scope: [
+      'Bulk Actions grid (multi-select sites + run action)',
+      'Check All Whois (fan-out + collected results)',
+      'Sprint Planner (drag-drop board)',
+      'ArticleDraftCard redesign',
+      'Per-site Favorites flag'
+    ]
+  },
+  { id: 'SBR-200', col: 'wait', proj: 'songbyrd', pri: 'high',
+    t: 'Logo folder access',
+    s: 'C:\\Users\\ozomr\\Desktop\\vibe\\songbyrd — needs cowork directory approval.',
+    scope: [
+      'User: approve cowork directory request for songbyrd folder',
+      'Claude: pick logo asset, drop into dashboard'
+    ]
+  },
+  { id: 'SBR-201', col: 'wait', proj: 'songbyrd', pri: 'med',
+    t: 'Vapi API key',
+    s: 'Admin settings page reserved; key to be entered later by user.',
+    scope: [
+      'User: generate Vapi API key',
+      'User: paste into admin settings page in dashboard',
+      'Claude: wire voice registration via key'
+    ]
+  },
+  { id: 'OMN-200', col: 'wait', proj: 'omnicity', pri: 'high',
+    t: 'Vercel env vars for OAuth',
+    s: 'Gmail / Microsoft / TikTok via Meta — user to set in Vercel.',
+    scope: [
+      'Set GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET',
+      'Set MICROSOFT_CLIENT_ID + MICROSOFT_CLIENT_SECRET',
+      'Set META_APP_ID + META_APP_SECRET (TikTok via Meta)',
+      'Set NEXTAUTH_URL + NEXTAUTH_SECRET',
+      'Redeploy via Vercel'
+    ]
+  },
+  { id: 'CLP-200', col: 'wait', proj: 'clpr', pri: 'med',
+    t: 'Run Supabase migrations',
+    s: 'supabase-migration-conversations.sql + favorites.sql.',
+    scope: [
+      'Run supabase-migration-conversations.sql in CLPR project',
+      'Run supabase-migration-favorites.sql in CLPR project',
+      'Confirm tables exist + RLS policies active'
+    ]
+  },
+  { id: 'LIC-200', col: 'wait', proj: 'licenser', pri: 'high',
+    t: 'Per-product architecture refactor',
+    s: 'Global product selector at top, all child pages nested per-product.',
+    scope: [
+      'Add global product picker in admin header',
+      'Nest Licenses page per-product',
+      'Nest Activations per-product',
+      'Nest Releases per-product',
+      'Update REST endpoints to scope by product_id'
+    ]
+  },
+  { id: 'LIC-201', col: 'wait', proj: 'licenser', pri: 'med',
+    t: 'Design fixes — labels + collapse',
+    s: 'Remove "straw" labels, collapse cards by default, fix license button alignment, manual sub support.',
+    scope: [
+      'Remove placeholder "straw" labels everywhere',
+      'Collapse all license cards by default',
+      'Fix license page button alignment',
+      'Add UI for manual subscription override'
+    ]
+  },
+  { id: 'HUB-202', col: 'wait', proj: 'hub', pri: 'high',
+    t: 'Upress SSL renewal',
+    s: 'Cert expiry blocking hub.d3v.co.il + 2wheel.it + 108 PBN sites. Ticket open.',
+    scope: [
+      'User: follow up on Upress ticket',
+      'User: confirm cert renewed across all 108 sites',
+      'Claude: re-test outbound from Hub once SSL is back'
+    ]
+  },
 
-  // BACKLOG / DEFERRED
-  { col: 'back', proj: 'clpr',     pri: 'low', t: 'Marketing + Agent Studios', s: 'DROPPED — not in upstream. Per user 2026-04-29.' },
-  { col: 'back', proj: 'hub',      pri: 'low', t: 'Sprint Planner (v2.5.0)', s: 'Deferred to v2.5.0 batch.' },
-  { col: 'back', proj: 'hub',      pri: 'low', t: 'Favorites feature', s: 'Per-site Favorites flag; deferred.' }
+  // ===== BACKLOG / DEFERRED =====
+  { id: 'CLP-900', col: 'back', proj: 'clpr', pri: 'low', t: 'Marketing + Agent Studios', s: 'DROPPED — not in upstream. Per user 2026-04-29.' },
+  { id: 'HUB-900', col: 'back', proj: 'hub',  pri: 'low', t: 'Sprint Planner (v2.5.0)', s: 'Deferred to v2.5.0 batch.' },
+  { id: 'HUB-901', col: 'back', proj: 'hub',  pri: 'low', t: 'Favorites feature', s: 'Per-site Favorites flag; deferred.' }
 ];
 
 const cols = [
-  { id: 'done', name: 'Done',          tone: '#1D9E75' },
-  { id: 'wip',  name: 'In progress',   tone: '#378ADD' },
-  { id: 'wait', name: 'Awaiting you',  tone: '#BA7517' },
+  { id: 'done', name: 'Done',          tone: '#5DCAA5' },
+  { id: 'wip',  name: 'In progress',   tone: '#85B7EB' },
+  { id: 'wait', name: 'Awaiting you',  tone: '#EF9F27' },
   { id: 'back', name: 'Backlog',       tone: '#888780' }
 ];
 
 let activeProj = 'all';
+const expanded = new Set();
+const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
+
+function persistChecks() {
+  localStorage.setItem('kanban_checks', JSON.stringify(checks));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => fallback());
+  } else {
+    fallback();
+  }
+  function fallback() {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function pingClaude(task, action) {
+  let msg = '';
+  switch (action) {
+    case 'done':
+      msg = `Mark task ${task.id} ("${task.t}") as done. Move to Done column on the kanban next push.`;
+      break;
+    case 'start':
+      msg = `Start working on task ${task.id} ("${task.t}") right now. Spin up a session and get going.`;
+      break;
+    case 'block':
+      msg = `Task ${task.id} ("${task.t}") is blocked. Help me unblock it — what do you need from me?`;
+      break;
+    case 'note':
+      const note = prompt(`Note for ${task.id}:`, '');
+      if (!note) return;
+      msg = `Update for task ${task.id} ("${task.t}"): ${note}`;
+      break;
+    default:
+      msg = `Task ${task.id}: ${task.t}`;
+  }
+  window.open(CLAUDE_URL + encodeURIComponent(msg), '_blank');
+}
 
 function renderSummary() {
   const total = tasks.length;
@@ -236,24 +555,70 @@ function renderFilters() {
   });
 }
 
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+function scopeProgress(task) {
+  if (!task.scope || !task.scope.length) return null;
+  const taskChecks = checks[task.id] || {};
+  const done = task.scope.filter((_, i) => taskChecks[i]).length;
+  return { done, total: task.scope.length };
+}
+
+function renderCard(t) {
+  const p = projects[t.proj];
+  const pri = priorities[t.pri];
+  const isExpanded = expanded.has(t.id);
+  const prog = scopeProgress(t);
+  const progStr = prog ? `<span class="scope-progress">${prog.done}/${prog.total}</span>` : '';
+
+  let scopeHtml = '';
+  if (isExpanded) {
+    if (t.scope && t.scope.length) {
+      const taskChecks = checks[t.id] || {};
+      scopeHtml = `<div class="scope">
+        <div class="scope-label">Scope</div>
+        ${t.scope.map((item, i) => {
+          const checked = !!taskChecks[i];
+          return `<label class="check ${checked ? 'checked' : ''}" data-task="${t.id}" data-i="${i}">
+            <input type="checkbox" ${checked ? 'checked' : ''}>
+            <span class="check-text">${escapeHtml(item)}</span>
+          </label>`;
+        }).join('')}
+      </div>`;
+    } else {
+      scopeHtml = `<div class="scope"><div class="scope-empty">No checklist for this task yet.</div></div>`;
+    }
+  }
+
+  return `
+    <div class="card ${isExpanded ? 'expanded' : ''}" data-task="${t.id}">
+      <div class="card-top">
+        <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
+        <span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span>
+      </div>
+      <p class="card-title" data-toggle="${t.id}">${escapeHtml(t.t)}${progStr}</p>
+      <p class="card-sub" data-toggle="${t.id}">${escapeHtml(t.s)}</p>
+      ${scopeHtml}
+      <div class="card-foot">
+        <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
+        <div class="actions">
+          <button class="act done"  data-act="done"  data-task="${t.id}" title="Mark done">✓</button>
+          <button class="act start" data-act="start" data-task="${t.id}" title="Start now">▶</button>
+          <button class="act block" data-act="block" data-task="${t.id}" title="Blocked — help me">⚠</button>
+          <button class="act note"  data-act="note"  data-task="${t.id}" title="Note for Claude">✏</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderGrid() {
   const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
   document.getElementById('grid').innerHTML = cols.map(col => {
     const colTasks = filtered.filter(t => t.col === col.id);
-    const cards = colTasks.map(t => {
-      const p = projects[t.proj];
-      const pri = priorities[t.pri];
-      return `
-        <div class="card">
-          <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
-          <p class="card-title">${escapeHtml(t.t)}</p>
-          <p class="card-sub">${escapeHtml(t.s)}</p>
-          <div class="card-foot">
-            <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
-          </div>
-        </div>
-      `;
-    }).join('') || '<div class="empty">Nothing here</div>';
+    const cards = colTasks.map(renderCard).join('') || '<div class="empty">Nothing here</div>';
     return `
       <div class="col">
         <div class="col-head">
@@ -264,10 +629,51 @@ function renderGrid() {
       </div>
     `;
   }).join('');
-}
 
-function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  // Wire up interactions
+  document.querySelectorAll('.card-id').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      copyText(id);
+      el.classList.add('copied');
+      toast(`Copied ${id}`);
+      setTimeout(() => el.classList.remove('copied'), 1200);
+    });
+  });
+
+  document.querySelectorAll('[data-toggle]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.toggle;
+      if (expanded.has(id)) expanded.delete(id);
+      else expanded.add(id);
+      renderGrid();
+    });
+  });
+
+  document.querySelectorAll('.check').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = el.dataset.task;
+      const i = parseInt(el.dataset.i, 10);
+      checks[id] = checks[id] || {};
+      checks[id][i] = !checks[id][i];
+      persistChecks();
+      renderGrid();
+    });
+  });
+
+  document.querySelectorAll('.act').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.task;
+      const act = el.dataset.act;
+      const task = tasks.find(t => t.id === id);
+      if (task) pingClaude(task, act);
+    });
+  });
 }
 
 renderSummary();
