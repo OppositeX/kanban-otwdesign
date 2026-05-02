@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" width="237.554" height="227.465" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 237.554 227.465">
+  <defs>
+    <linearGradient id="b" data-name="Blue Zircon" x1="45.717" y1="113.732" x2="191.837" y2="113.732" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0096bb"/>
+      <stop offset=".056" stop-color="#0898bc"/>
+      <stop offset=".144" stop-color="#1fa1c2"/>
+      <stop offset=".253" stop-color="#44aeca"/>
+      <stop offset=".379" stop-color="#77c0d6"/>
+      <stop offset=".5" stop-color="#b0d5e4"/>
+      <stop offset=".511" stop-color="#a9d1e0"/>
+      <stop offset=".602" stop-color="#76b6c8"/>
+      <stop offset=".691" stop-color="#4b9fb4"/>
+      <stop offset=".777" stop-color="#2a8da4"/>
+      <stop offset=".859" stop-color="#138199"/>
+      <stop offset=".935" stop-color="#047992"/>
+      <stop offset="1" stop-color="#007790"/>
+    </linearGradient>
+    <linearGradient id="c" x1="22.325" y1="113.732" x2="215.17" y2="113.732" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb7030"/>
+      <stop offset=".991" stop-color="#5f6aff"/>
+    </linearGradient>
+  </defs>
+  <path d="M45.717,55.232h19.482l53.579,57.729,53.575-57.729h19.482l-65.44,68.712v48.288h-15v-48.288L45.717,55.232Z" fill="url(#b)" stroke="url(#c)" stroke-miterlimit="10" stroke-width="20"/>
+</svg>
