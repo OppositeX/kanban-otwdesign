@@ -27,351 +27,82 @@ body {
 }
 .title { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.2px; }
 .meta { font-size: 13px; color: #8a8a85; margin-top: 4px; }
-.summary {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.stat {
-  background: #16161a;
-  border: 0.5px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 12px 14px;
-}
+.summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat { background: #16161a; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; }
 .stat-label { font-size: 11px; color: #8a8a85; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
 .stat-value { font-size: 22px; font-weight: 500; }
-.banner {
-  background: #16161a;
-  border: 0.5px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
-  font-size: 12px;
-  color: #9c9c97;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1.5;
-}
+.banner { background: #16161a; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #9c9c97; display: flex; align-items: center; gap: 8px; line-height: 1.5; }
 .banner-dot { width: 6px; height: 6px; border-radius: 50%; background: #5DCAA5; flex: none; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.chip {
-  font-size: 12px;
-  padding: 6px 11px;
-  border-radius: 999px;
-  border: 0.5px solid rgba(255,255,255,0.12);
-  background: #16161a;
-  cursor: pointer;
-  color: #b5b5b0;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: inherit;
-}
+.chip { font-size: 12px; padding: 6px 11px; border-radius: 999px; border: 0.5px solid rgba(255,255,255,0.12); background: #16161a; cursor: pointer; color: #b5b5b0; display: inline-flex; align-items: center; gap: 7px; font-family: inherit; }
 .chip:hover { border-color: rgba(255,255,255,0.28); color: #f0f0ee; }
 .chip.active { background: #f0f0ee; color: #0b0b0d; border-color: #f0f0ee; }
-.chip.active .dot { box-shadow: 0 0 0 2px rgba(0,0,0,0.25); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  align-items: start;
-}
-.col {
-  background: #131316;
-  border-radius: 12px;
-  padding: 12px;
-  min-height: 220px;
-  border: 0.5px solid rgba(255,255,255,0.04);
-}
-.col-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding: 0 4px;
-}
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.col { background: #131316; border-radius: 12px; padding: 12px; min-height: 220px; border: 0.5px solid rgba(255,255,255,0.04); }
+.col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
 .col-name { font-size: 13px; font-weight: 500; }
-.col-count {
-  font-size: 11px;
-  color: #8a8a85;
-  background: #1f1f24;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 0.5px solid rgba(255,255,255,0.06);
-}
-.card {
-  background: #1c1c20;
-  border-radius: 8px;
-  border: 0.5px solid rgba(255,255,255,0.06);
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  transition: border-color 0.1s;
-}
+.col-count { font-size: 11px; color: #8a8a85; background: #1f1f24; padding: 2px 8px; border-radius: 999px; border: 0.5px solid rgba(255,255,255,0.06); }
+.card { background: #1c1c20; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.06); padding: 10px 12px; margin-bottom: 8px; transition: border-color 0.1s; }
 .card.expanded { border-color: rgba(255,255,255,0.18); }
 .card.overridden { border-left: 2px solid rgba(133,183,235,0.5); }
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.card-tag {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.2px;
-}
-.card-id {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 10px;
-  color: #6f6f6a;
-  background: #0f0f12;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 0.5px solid rgba(255,255,255,0.06);
-  cursor: pointer;
-  user-select: all;
-  transition: color 0.1s, border-color 0.1s;
-}
+.card-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 6px; }
+.card-tag { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.2px; }
+.card-id { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 10px; color: #6f6f6a; background: #0f0f12; padding: 2px 6px; border-radius: 4px; border: 0.5px solid rgba(255,255,255,0.06); cursor: pointer; user-select: all; transition: color 0.1s, border-color 0.1s; }
 .card-id:hover { color: #b5b5b0; border-color: rgba(255,255,255,0.18); }
 .card-id.copied { color: #5DCAA5; border-color: rgba(93,202,165,0.4); }
 .card-title { font-size: 13px; font-weight: 500; line-height: 1.35; margin: 0 0 4px; color: #efefed; cursor: pointer; }
 .card-sub { font-size: 12px; color: #9c9c97; line-height: 1.4; margin: 0; cursor: pointer; }
-.card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 11px;
-  color: #6f6f6a;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+.card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #6f6f6a; flex-wrap: wrap; gap: 6px; }
 .pri { display: inline-flex; align-items: center; gap: 5px; }
 .pri-dot { width: 6px; height: 6px; border-radius: 50%; }
 .actions { display: flex; gap: 4px; flex-wrap: wrap; }
-.act {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 0.5px solid rgba(255,255,255,0.1);
-  background: transparent;
-  color: #b5b5b0;
-  cursor: pointer;
-  font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  transition: background 0.1s, border-color 0.1s, color 0.1s;
-}
+.act { font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.1); background: transparent; color: #b5b5b0; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 3px; transition: background 0.1s, border-color 0.1s, color 0.1s; }
 .act:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.22); color: #f0f0ee; }
 .act.done:hover { background: rgba(93,202,165,0.12); border-color: rgba(93,202,165,0.4); color: #5DCAA5; }
 .act.start:hover { background: rgba(133,183,235,0.12); border-color: rgba(133,183,235,0.4); color: #85B7EB; }
 .act.block:hover { background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.4); color: #E24B4A; }
 .act.note:hover { background: rgba(239,159,39,0.12); border-color: rgba(239,159,39,0.4); color: #EF9F27; }
 .act.reset:hover { background: rgba(120,120,120,0.12); border-color: rgba(120,120,120,0.4); color: #b5b5b0; }
-.act.archive:hover { background: rgba(120,120,120,0.12); border-color: rgba(120,120,120,0.4); color: #b5b5b0; }
-.archive-toggle {
-  font-size: 11px;
-  padding: 5px 11px;
-  border-radius: 6px;
-  border: 0.5px solid rgba(255,255,255,0.1);
-  background: transparent;
-  color: #8a8a85;
-  cursor: pointer;
-  font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: background 0.1s, border-color 0.1s, color 0.1s;
-  margin-left: auto;
-}
+.archive-toggle { font-size: 11px; padding: 5px 11px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.1); background: transparent; color: #8a8a85; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: background 0.1s, border-color 0.1s, color 0.1s; margin-left: auto; }
 .archive-toggle:hover { border-color: rgba(255,255,255,0.22); color: #d5d5d0; background: rgba(255,255,255,0.03); }
 .archive-toggle.on { color: #b5b5b0; border-color: rgba(255,255,255,0.18); }
 .archive-toggle .badge { font-size: 10px; opacity: 0.6; }
-.scope {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 0.5px solid rgba(255,255,255,0.07);
-}
-.scope-label {
-  font-size: 10px;
-  color: #6f6f6a;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 6px;
-}
-.check {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 4px 0;
-  cursor: pointer;
-  font-size: 12px;
-  color: #c5c5c0;
-  line-height: 1.4;
-}
-.check input {
-  margin: 2px 0 0;
-  flex: none;
-  accent-color: #5DCAA5;
-  cursor: pointer;
-}
-.check.checked .check-text {
-  text-decoration: line-through;
-  color: #6f6f6a;
-}
+.scope { margin-top: 10px; padding-top: 10px; border-top: 0.5px solid rgba(255,255,255,0.07); }
+.scope-label { font-size: 10px; color: #6f6f6a; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+.check { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; cursor: pointer; font-size: 12px; color: #c5c5c0; line-height: 1.4; }
+.check input { margin: 2px 0 0; flex: none; accent-color: #5DCAA5; cursor: pointer; }
+.check.checked .check-text { text-decoration: line-through; color: #6f6f6a; }
 .check-text { flex: 1; }
 .scope-empty { font-size: 11px; color: #5a5a55; font-style: italic; }
-.scope-progress {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: #8a8a85;
-  margin-left: 6px;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
+.scope-progress { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #8a8a85; margin-left: 6px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .empty { font-size: 12px; color: #5a5a55; text-align: center; padding: 1.5rem 0; font-style: italic; }
-.timer {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 0.5px solid rgba(255,255,255,0.06);
-}
-.timer.live {
-  background: rgba(133,183,235,0.08);
-  border-color: rgba(133,183,235,0.25);
-  color: #85B7EB;
-}
-.timer.live .pulse {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #85B7EB;
-  animation: pulse 1.6s ease-in-out infinite;
-}
-.timer.shipped {
-  background: rgba(93,202,165,0.08);
-  border-color: rgba(93,202,165,0.25);
-  color: #5DCAA5;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-/* Quick links — single row with horizontal scroll */
+.timer { display: inline-flex; align-items: center; gap: 4px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 0.5px solid rgba(255,255,255,0.06); }
+.timer.live { background: rgba(133,183,235,0.08); border-color: rgba(133,183,235,0.25); color: #85B7EB; }
+.timer.live .pulse { width: 5px; height: 5px; border-radius: 50%; background: #85B7EB; animation: pulse 1.6s ease-in-out infinite; }
+.timer.shipped { background: rgba(93,202,165,0.08); border-color: rgba(93,202,165,0.25); color: #5DCAA5; }
+@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 .qlinks-wrap { margin-bottom: 18px; }
-.qlinks-h {
-  font-size: 11px;
-  color: #8a8a85;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.qlinks {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  padding-bottom: 6px;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.18) transparent;
-  -webkit-overflow-scrolling: touch;
-}
+.qlinks-h { font-size: 11px; color: #8a8a85; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.qlinks { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; -webkit-overflow-scrolling: touch; }
 .qlinks::-webkit-scrollbar { height: 6px; }
 .qlinks::-webkit-scrollbar-track { background: transparent; }
 .qlinks::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
 .qlinks::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.32); }
-.qcard {
-  flex: 0 0 168px;
-  scroll-snap-align: start;
-  background: #16161a;
-  border: 0.5px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 12px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transition: border-color 0.1s, transform 0.05s;
-}
+.qcard { flex: 0 0 168px; scroll-snap-align: start; background: #16161a; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: border-color 0.1s, transform 0.05s; }
 .qcard:hover { border-color: rgba(255,255,255,0.22); }
-.qlogo {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  margin-bottom: 8px;
-  color: #fff;
-  overflow: hidden;
-  flex: none;
-}
+.qlogo { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; color: #fff; overflow: hidden; flex: none; }
 .qlogo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; box-sizing: border-box; }
 .qlogo.bare { background: transparent !important; padding: 0; }
 .qlogo.bare img { padding: 0; }
 .qname { font-size: 12px; font-weight: 500; color: #efefed; margin-bottom: 8px; line-height: 1.2; }
 .qlinks-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
-.qlink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: #1f1f24;
-  border: 0.5px solid rgba(255,255,255,0.08);
-  color: #b5b5b0;
-  text-decoration: none;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
-}
+.qlink { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; background: #1f1f24; border: 0.5px solid rgba(255,255,255,0.08); color: #b5b5b0; text-decoration: none; transition: background 0.1s, color 0.1s, border-color 0.1s; }
 .qlink:hover { background: #2a2a30; color: #f0f0ee; border-color: rgba(255,255,255,0.22); }
 .qlink svg { width: 14px; height: 14px; }
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1c1c20;
-  border: 0.5px solid rgba(255,255,255,0.18);
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 12px;
-  color: #e8e8e6;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 100;
-}
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1c1c20; border: 0.5px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 8px 14px; font-size: 12px; color: #e8e8e6; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100; }
 .toast.show { opacity: 1; }
-@media (max-width: 900px) {
-  .grid { grid-template-columns: 1fr; }
-  .summary { grid-template-columns: repeat(2, 1fr); }
-  body { padding: 14px; }
-  .title { font-size: 19px; }
-  .act { font-size: 12px; padding: 5px 10px; }
-  .card-id { font-size: 11px; padding: 3px 7px; }
-  .qcard { flex: 0 0 150px; }
-}
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .summary { grid-template-columns: repeat(2, 1fr); } body { padding: 14px; } .title { font-size: 19px; } .act { font-size: 12px; padding: 5px 10px; } .card-id { font-size: 11px; padding: 3px 7px; } .qcard { flex: 0 0 150px; } }
 </style>
 </head>
 <body>
@@ -379,7 +110,7 @@ body {
   <div class="head">
     <div>
       <h1 class="title">Project tasks</h1>
-      <p class="meta">8 active projects · last updated 2026-05-04</p>
+      <p class="meta">8 active projects · last updated 2026-05-05</p>
     </div>
     <button class="archive-toggle" id="reset-all" title="Clear all locally-saved column overrides" style="margin-left:0;">↩ Reset local state</button>
   </div>
@@ -399,77 +130,38 @@ body {
   </div>
 </div>
 <div class="toast" id="toast"></div>
-
 <script>
 const CLAUDE_URL = 'https://claude.ai/new?q=';
-
-// Local-only state overrides — when the user clicks ✓/▶/⚠ the card moves columns
-// in the UI and persists across reloads. ↩ on a card clears its override.
 let colOverride     = JSON.parse(localStorage.getItem('kanban_col_override')     || '{}');
 let shippedOverride = JSON.parse(localStorage.getItem('kanban_shipped_override') || '{}');
 let startedOverride = JSON.parse(localStorage.getItem('kanban_started_override') || '{}');
-
 function persistOverrides() {
   localStorage.setItem('kanban_col_override',     JSON.stringify(colOverride));
   localStorage.setItem('kanban_shipped_override', JSON.stringify(shippedOverride));
   localStorage.setItem('kanban_started_override', JSON.stringify(startedOverride));
 }
-
 function effectiveCol(t)     { return colOverride[t.id]     || t.col; }
 function effectiveStarted(t) { return startedOverride[t.id] || t.startedAt; }
 function effectiveShipped(t) { return shippedOverride[t.id] || t.shippedAt; }
-function isOverridden(t) {
-  return colOverride[t.id] !== undefined ||
-         shippedOverride[t.id] !== undefined ||
-         startedOverride[t.id] !== undefined;
-}
+function isOverridden(t) { return colOverride[t.id] !== undefined || shippedOverride[t.id] !== undefined || startedOverride[t.id] !== undefined; }
 
 const projects = {
   jepeto:   { name: 'Jepeto',   logo: 'J', logoUrl: 'logos/jepeto.webp', color: '#7F77DD', bg: '#3C3489', text: '#CECBF6',
-    links: [
-      { kind: 'github', url: 'https://github.com/OppositeX/jepeto-wp', label: 'GitHub' },
-      { kind: 'live',   url: 'http://cnvs.local/wp-admin/', label: 'Local WP admin' }
-    ] },
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/jepeto-wp', label: 'GitHub' }, { kind: 'live', url: 'http://cnvs.local/wp-admin/', label: 'Local WP admin' } ] },
   hub:      { name: 'PBN Hub',  logo: 'H', logoUrl: 'logos/hub.svg', color: '#1D9E75', bg: '#085041', text: '#9FE1CB',
-    links: [
-      { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub', label: 'GitHub (source)' },
-      { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub-releases', label: 'GitHub (releases proxy)' },
-      { kind: 'live',   url: 'http://hub.d3v.co.il/wp-admin/', label: 'WP admin' }
-    ] },
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub', label: 'GitHub (source)' }, { kind: 'github', url: 'https://github.com/OppositeX/pbn-hub-releases', label: 'Releases proxy' }, { kind: 'live', url: 'http://hub.d3v.co.il/wp-admin/', label: 'WP admin' } ] },
   omnicity: { name: 'Omnicity', logo: 'O', logoUrl: 'logos/omnicity.webp', color: '#D85A30', bg: '#712B13', text: '#F5C4B3',
-    links: [
-      { kind: 'github', url: 'https://github.com/OppositeX/omnicity', label: 'GitHub' },
-      { kind: 'vercel', url: 'https://omnicity-otwdesign.vercel.app', label: 'Live' }
-    ] },
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/omnicity', label: 'GitHub' }, { kind: 'vercel', url: 'https://omnicity-otwdesign.vercel.app', label: 'Live' } ] },
   clpr:     { name: 'CLPR',     logo: 'C', logoUrl: 'logos/clpr.webp', color: '#D4537E', bg: '#72243E', text: '#F4C0D1',
-    links: [
-      { kind: 'github', url: 'https://github.com/OppositeX/clpr-platform', label: 'GitHub' },
-      { kind: 'vercel', url: 'https://clpr-platform-otwdesign.vercel.app', label: 'Live' }
-    ] },
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/clpr-platform', label: 'GitHub' }, { kind: 'vercel', url: 'https://clpr-platform-otwdesign.vercel.app', label: 'Live' } ] },
   voyc:     { name: 'VOYC',     logo: 'V', logoUrl: 'logos/voyc.svg', color: '#378ADD', bg: '#0C447C', text: '#B5D4F4',
-    links: [
-      { kind: 'github', url: 'https://github.com/OppositeX/voic-platform', label: 'GitHub' },
-      { kind: 'vercel', url: 'https://dashboard-otwdesign.vercel.app', label: 'Frontend' },
-      { kind: 'render', url: 'https://api.voic.ai', label: 'API (Render)' }
-    ] },
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/voic-platform', label: 'GitHub' }, { kind: 'vercel', url: 'https://dashboard-otwdesign.vercel.app', label: 'Frontend' }, { kind: 'render', url: 'https://api.voic.ai', label: 'API (Render)' } ] },
   licenser: { name: 'Licenser', logo: 'L', logoUrl: 'logos/licenser.webp', color: '#BA7517', bg: '#633806', text: '#FAC775',
-    links: [
-      { kind: 'github', url: 'https://github.com/OppositeX/licenser', label: 'GitHub' },
-      { kind: 'live',   url: 'http://licenser.d3v.co.il/wp-admin/', label: 'WP admin' }
-    ] },
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/licenser', label: 'GitHub' }, { kind: 'live', url: 'http://licenser.d3v.co.il/wp-admin/', label: 'WP admin' } ] },
   songbyrd: { name: 'Songbyrd', logo: 'S', logoUrl: 'logos/songbyrd.webp', color: '#E8003F', bg: '#5C0019', text: '#F8B5C8',
-    links: [
-      { kind: 'vercel', url: 'https://songbyrd-rho.vercel.app',              label: 'Dashboard (live)' },
-      { kind: 'render', url: 'https://songbyrd-engine.onrender.com',         label: 'Engine (Render stub)' },
-      { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd',        label: 'Dashboard repo' },
-      { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd-Engine', label: 'Engine repo' }
-    ] },
+    links: [ { kind: 'vercel', url: 'https://songbyrd-rho.vercel.app', label: 'Dashboard' }, { kind: 'render', url: 'https://songbyrd-engine.onrender.com', label: 'Engine' }, { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd', label: 'Dashboard repo' }, { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd-Engine', label: 'Engine repo' } ] },
   cnvs:     { name: 'CNVS Studio', logo: 'C', logoUrl: 'logos/cnvs.webp', color: '#534AB7', bg: '#26215C', text: '#CECBF6',
-    links: [
-      { kind: 'github', url: 'https://github.com/GLOO-ooo/CNVS-Studio-v2', label: 'GitHub' },
-      { kind: 'live',   url: 'https://cnvs.studio', label: 'Live demo (cnvs.studio)' },
-      { kind: 'live',   url: 'http://cnvs.gloo.local/wp-admin/', label: 'Local mirror admin' }
-    ] }
+    links: [ { kind: 'github', url: 'https://github.com/GLOO-ooo/CNVS-Studio-v2', label: 'GitHub' }, { kind: 'live', url: 'https://cnvs.studio', label: 'Live demo' }, { kind: 'live', url: 'http://cnvs.gloo.local/wp-admin/', label: 'Local mirror admin' } ] }
 };
 
 const linkIcons = {
@@ -479,189 +171,346 @@ const linkIcons = {
   live:   '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4v4M13 3l-7 7M11 9v4H3V5h4"/></svg>'
 };
 
-const priorities = {
-  high: { label: 'High', color: '#E24B4A' },
-  med:  { label: 'Med',  color: '#EF9F27' },
-  low:  { label: 'Low',  color: '#888780' }
-};
+const priorities = { high: { label: 'High', color: '#E24B4A' }, med: { label: 'Med', color: '#EF9F27' }, low: { label: 'Low', color: '#888780' } };
 
 const tasks = [
-  // ===== DONE (recent) =====
-  { id: 'JEP-100', col: 'done', proj: 'jepeto',   pri: 'high', startedAt: '2026-05-02T18:00:00Z', shippedAt: '2026-05-04T12:00:00Z', t: 'v1.1.4 shipped + Licenser SDK embedded', s: 'v0.8.5 → v1.1.4 landed live (read+action tools, URL ingestion, image upload, Plan Mode, Keyword Burst, polish). Licenser SDK wired so future updates can be license-gated.' },
-  { id: 'VOY-100', col: 'done', proj: 'voyc',     pri: 'high', startedAt: '2026-05-02T19:00:00Z', shippedAt: '2026-05-03T15:00:00Z', t: 'Supabase Auth — Phase 1', s: 'Project up at ojvlkauplvjekbvugkah.supabase.co (eu-west-2). Google OAuth wired, redirect URLs configured, signup flow tested end-to-end. Phase 2 (migration plan) in progress under VOY-101.' },
-  { id: 'SBR-100', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-03T18:00:00Z', t: 'v0.2.0 — push, provision, polish', s: 'Both repos pushed. Render stub live. Vercel + Supabase (office org) live. Magic-link login working. End-to-end smoke green via stub. HF Space alternate provider rebuilding.' },
-  { id: 'SBR-200', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-05-04T22:00:00Z', shippedAt: '2026-05-04T22:15:00Z', t: 'Logo received + cropped', s: 'Magenta phoenix mark received. Cropped to square 256px webp + dropped into kanban + dashboard. Brand colors updated (was placeholder green).' },
-  { id: 'CLP-100', col: 'done', proj: 'clpr',     pri: 'high', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-02T18:00:00Z', t: 'Wave 5 — Workflow Studio + Cinema + BYOK', s: 'Three commits shipped: Cinema polish + 402 surface · dev-login bypass · picker wheels + per-option icons + prominent prompt. Live at clpr-platform-otwdesign.vercel.app.' },
-  { id: 'LIC-200', col: 'done', proj: 'licenser', pri: 'high', startedAt: '2026-05-02T14:00:00Z', shippedAt: '2026-05-02T17:00:00Z', t: 'Per-product architecture refactor — v0.2.0', s: 'Product picker bar on Licenses/Activations/Releases. user_meta persistence + ?product=N deep link. Live.' },
-  { id: 'LIC-201', col: 'done', proj: 'licenser', pri: 'med',  startedAt: '2026-05-02T14:00:00Z', shippedAt: '2026-05-02T17:00:00Z', t: 'Design fixes — v0.2.0', s: 'Collapsible cards, fixed-grid alignment, manual subscription override (presets + custom + reason).' },
-  { id: 'HUB-100', col: 'done', proj: 'hub',      pri: 'med',  startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-02T15:00:00Z', t: 'Track A v2.4.2 verified', s: 'v2.4.2 fixes verified via task. User-side: hit Plugins → Update on hub.d3v.co.il.' },
+  { id: 'JEP-100', col: 'done', proj: 'jepeto', pri: 'high', startedAt: '2026-05-02T18:00:00Z', shippedAt: '2026-05-04T12:00:00Z', t: 'v1.1.4 shipped + Licenser SDK', s: 'v0.8.5 → v1.1.4 landed live (read+action tools, URL ingestion, image upload, Plan Mode, Keyword Burst, polish). Licenser SDK wired.' },
+  { id: 'JEP-101', col: 'done', proj: 'jepeto', pri: 'med', startedAt: '2026-05-04T22:30:00Z', shippedAt: '2026-05-05T00:45:00Z', t: 'v1.2.1 — license-page slug fix', s: 'SDK was double-suffixing the slug as jepeto_wp_license_license. Fixed in includes/licenser-sdk/AdminUI.php. Live on cnvs.local.' },
+  { id: 'VOY-100', col: 'done', proj: 'voyc', pri: 'high', startedAt: '2026-05-02T19:00:00Z', shippedAt: '2026-05-03T15:00:00Z', t: 'Supabase Auth — Phase 1', s: 'Project up at ojvlkauplvjekbvugkah.supabase.co. Google OAuth wired, signup tested end-to-end.' },
+  { id: 'SBR-100', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-03T18:00:00Z', t: 'v0.2.0 — push, provision, polish', s: 'Both repos pushed. Render stub live. Vercel + Supabase live. Magic-link login working.' },
+  { id: 'SBR-200', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-05-04T22:00:00Z', shippedAt: '2026-05-04T22:15:00Z', t: 'Logo received + cropped', s: 'Magenta phoenix mark cropped to 256px webp + dropped into kanban + dashboard.' },
+  { id: 'CLP-100', col: 'done', proj: 'clpr', pri: 'high', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-02T18:00:00Z', t: 'Wave 5 — Workflow Studio + Cinema + BYOK', s: 'Three commits shipped: Cinema polish + 402 surface · dev-login bypass · picker wheels.' },
+  { id: 'LIC-200', col: 'done', proj: 'licenser', pri: 'high', startedAt: '2026-05-02T14:00:00Z', shippedAt: '2026-05-02T17:00:00Z', t: 'Per-product architecture refactor — v0.2.0', s: 'Product picker bar. user_meta persistence + ?product=N deep link.' },
+  { id: 'LIC-201', col: 'done', proj: 'licenser', pri: 'med', startedAt: '2026-05-02T14:00:00Z', shippedAt: '2026-05-02T17:00:00Z', t: 'Design fixes — v0.2.0', s: 'Collapsible cards, fixed-grid alignment, manual subscription override.' },
+  { id: 'HUB-100', col: 'done', proj: 'hub', pri: 'med', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-02T15:00:00Z', t: 'Track A v2.4.2 verified', s: 'v2.4.2 fixes verified. User-side: hit Plugins → Update on hub.d3v.co.il.' },
 
-  // ===== ARCHIVE (older done items, hidden by default) =====
-  { id: 'HUB-001', col: 'archive', proj: 'hub',      pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
-  { id: 'HUB-002', col: 'archive', proj: 'hub',      pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
-  { id: 'HUB-003', col: 'archive', proj: 'hub',      pri: 'med',  t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
-  { id: 'HUB-004', col: 'archive', proj: 'hub',      pri: 'med',  t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
-  { id: 'JEP-001', col: 'archive', proj: 'jepeto',   pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed. 45s send timeout in v0.8.2.' },
-  { id: 'JEP-002', col: 'archive', proj: 'jepeto',   pri: 'med',  t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
-  { id: 'JEP-003', col: 'archive', proj: 'jepeto',   pri: 'med',  t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
-  { id: 'OMN-001', col: 'archive', proj: 'omnicity', pri: 'med',  t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live on omnicity-otwdesign.vercel.app.' },
-  { id: 'CLP-001', col: 'archive', proj: 'clpr',     pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
-  { id: 'LIC-001', col: 'archive', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il. Health endpoint OK.' },
+  { id: 'HUB-001', col: 'archive', proj: 'hub', pri: 'high', t: 'Hub v2.4.2 — surface 429 errors', s: 'Misclassified Gemini rate-limit shipped as 500. Now reads 429 with provider name.' },
+  { id: 'HUB-002', col: 'archive', proj: 'hub', pri: 'high', t: 'Hub Child v1.0.7 — PUC init order fix', s: 'Synchronous init replaces backwards plugins_loaded hook chain.' },
+  { id: 'HUB-003', col: 'archive', proj: 'hub', pri: 'med', t: '2wheel.it 403 diagnostic + UA override', s: 'Outbound handshake fix shipped with v2.4.1.' },
+  { id: 'HUB-004', col: 'archive', proj: 'hub', pri: 'med', t: 'Public-proxy releases pattern', s: 'pbn-hub-releases lets PUC update without embedded PATs.' },
+  { id: 'JEP-001', col: 'archive', proj: 'jepeto', pri: 'high', t: 'Jepeto v0.8.4 — workers + timeout', s: 'FPM starvation fixed.' },
+  { id: 'JEP-002', col: 'archive', proj: 'jepeto', pri: 'med', t: 'v0.6.8 — settings save preserves API key', s: 'merge_settings ignores masked round-trip values.' },
+  { id: 'JEP-003', col: 'archive', proj: 'jepeto', pri: 'med', t: 'v0.7.2 — ESM script tag fix', s: 'Vite ES modules now load with type="module".' },
+  { id: 'OMN-001', col: 'archive', proj: 'omnicity', pri: 'med', t: 'Main branch merged', s: 'Multi-instance OAuth scaffolding live.' },
+  { id: 'CLP-001', col: 'archive', proj: 'clpr', pri: 'high', t: 'Waves 1-3, 6, F shipped', s: 'Padding bug, logo, duplicate header — all resolved.' },
+  { id: 'LIC-001', col: 'archive', proj: 'licenser', pri: 'high', t: 'Licenser v0.1.4 deployed', s: 'Server live at licenser.d3v.co.il.' },
 
-  // ===== IN PROGRESS =====
-  { id: 'VOY-101', col: 'wip', proj: 'voyc', pri: 'med', startedAt: '2026-04-30T20:00:00Z',
-    t: 'Migration plan doc — Phase 2',
-    s: 'Phase 2 plan written. Two of three commits landed; third (admin_api middleware) blocked on a Chrome-MCP CodeMirror paste limitation — manual paste from outputs file pending.',
-    scope: [
-      'Read current JWT auth flow in voic-platform — DONE',
-      'Map JWT touchpoints to Supabase equivalents — DONE',
-      'Write migration plan in workspace md — DONE',
-      'Commit #3: admin_api middleware swap (paste from outputs/admin_api-middleware-auth.new.py)',
-      'Smoke-test against Phase 1 Supabase project'
-    ]
-  },
-  { id: 'HUB-202', col: 'wip', proj: 'hub', pri: 'high', startedAt: '2026-05-02T17:00:00Z',
-    t: 'Child v1.0.8 — HTTPS→HTTP fallback',
-    s: 'v1.0.8 zip published to public proxy. SOURCE PUSH still pending — sub-agent bash can\'t reach GitHub. User-side: upload zip to 2wheel.it via wp-admin to validate fallback.',
-    scope: [
-      'Diagnose 405 on hub.d3v.co.il — DONE (HTTPS-only failure)',
-      'Ship Child v1.0.8 with HTTPS→HTTP fallback',
-      'Update default Hub URL to http:// scheme',
-      'Smoke test handshake green on 2wheel.it'
-    ]
-  },
-  { id: 'CLP-200', col: 'wip', proj: 'clpr', pri: 'high', startedAt: '2026-05-04T22:25:00Z',
-    t: 'Login broken — Supabase env diagnosis',
-    s: 'Sub-agent driving. Hits /api/_diag-supabase, identifies broken key, walks user through fresh paste from oz.omri Supabase, then drives Vercel env update.',
-    scope: [
-      'Diag route reports current state of NEXT_PUBLIC_SUPABASE_URL + ANON + SERVICE_ROLE',
-      'User: fresh anon + service-role keys from correct Supabase project',
-      'Claude: paste into Vercel env vars (Production)',
-      'Trigger fresh deploy + reverify diag green',
-      'Test magic-link login end-to-end',
-      'Run BYOK / Cinema / Conversations / Favorites SQL migrations'
-    ]
-  },
-  { id: 'CNV-100', col: 'wip', proj: 'cnvs', pri: 'high', startedAt: '2026-05-04T22:25:00Z',
-    t: 'Regression sweep against cnvs.gloo.local',
-    s: 'Replica is up. Sub-agent walking every demo page — Materials, Geometry, Loaders, Lights, Cameras, Environment, Post FX, Physics, Shaders, WebGL FX, Raycasters, Animation, UI, Tools, Showcases — vs v0.0.49 baseline. Outputs prioritized fix list.',
-    scope: [
-      'Confirm v0.0.49 baseline renders cleanly on cnvs.gloo.local',
-      'Swap to v3 plugin zip',
-      'Walk every menu page, screenshot rendered output',
-      'Compare to v0.0.49 baseline — note visual / functional / console / network diffs',
-      'Output: outputs/cnvs-regression-2026-05-04.md (prioritized fix list)',
-      'Surface BLOCKER-tier issues immediately, don\'t wait for sweep to finish'
-    ]
-  },
+  { id: 'VOY-101', col: 'wip', proj: 'voyc', pri: 'med', startedAt: '2026-04-30T20:00:00Z', t: 'Migration plan doc — Phase 2', s: 'Plan written. Two of three commits landed; third blocked on Chrome-MCP CodeMirror paste limitation.', scope: ['Read JWT auth flow — DONE', 'Map JWT touchpoints — DONE', 'Write migration plan — DONE', 'Commit #3: admin_api middleware swap', 'Smoke-test against Phase 1 Supabase'] },
+  { id: 'HUB-202', col: 'wip', proj: 'hub', pri: 'high', startedAt: '2026-05-02T17:00:00Z', t: 'Child v1.0.8 — HTTPS→HTTP fallback', s: 'v1.0.8 zip published. Source push pending. User-side: upload zip to 2wheel.it via wp-admin.', scope: ['Diagnose 405 — DONE', 'Ship Child v1.0.8 with fallback', 'Update default Hub URL to http://', 'Smoke test handshake on 2wheel.it'] },
+  { id: 'CLP-200', col: 'wip', proj: 'clpr', pri: 'high', startedAt: '2026-05-04T22:25:00Z', t: 'Login broken — Supabase env diagnosis', s: 'Sub-agent driving Chrome MCP. User logged into oz.omri Supabase. Project ref cyjpttlgdemveaaxzpni. Sub-agent grabs keys, updates Vercel, redeploys, verifies.', scope: ['User: log into oz.omri Supabase — DONE', 'Confirm CLPR project — DONE', 'Read URL + anon + service_role from Settings → API', 'Paste into Vercel env vars (Production)', 'Trigger fresh deploy + verify login'] },
+  { id: 'CNV-100', col: 'wip', proj: 'cnvs', pri: 'high', startedAt: '2026-05-04T22:25:00Z', t: 'Regression sweep against cnvs.gloo.local', s: 'Replica live. Repo confirmed at GLOO-ooo/CNVS-Studio-v2. Sub-agent walking every demo page once v3 zip is built.', scope: ['User: confirm repo path — DONE (GLOO-ooo/CNVS-Studio-v2)', 'Build v3 plugin zip from source', 'Upload + activate v3 in cnvs.gloo.local', 'Walk every menu page, screenshot vs v0.0.49 baseline', 'Output prioritized fix list'] },
 
-  // ===== AWAITING YOU =====
-  { id: 'HUB-200', col: 'wait', proj: 'hub', pri: 'high',
-    t: 'Track B — 108-site bulk install (path pick)',
-    s: 'Sub-agent surfaced 3 paths after measuring real timing (3-5min/site = 5-9hrs end-to-end). Pick: A) commit to marathon, B) validated 5-site batch + script handoff, C) check Upress for native bulk-deploy first.',
-    scope: [
-      'User: pick A (full marathon) / B (validated batch + script) / C (research Upress bulk-deploy first)',
-      'Recommended: C → B → A — 10min check on Upress could save 6+ hours'
-    ]
-  },
-  { id: 'HUB-201', col: 'wait', proj: 'hub', pri: 'med',
-    t: 'v2.5.0 features — repo access',
-    s: 'Sub-agent can\'t reach private OppositeX/pbn-hub. Pick path: i) GH personal access token paste, ii) mount local checkout, iii) Chrome MCP gh device-code flow. Plan ready: Favorites → Bulk Actions → Whois → ArticleDraftCard → Sprint Planner.',
-    scope: [
-      'User: pick i (GH PAT) / ii (mount checkout) / iii (Chrome MCP gh device-code)',
-      'After unlock: ship 5 features, one PR each',
-      'Bump header to 2.5.0 + tag → CI auto-pushes to releases proxy'
-    ]
-  },
-  { id: 'SBR-201', col: 'wait', proj: 'songbyrd', pri: 'med',
-    t: 'Vapi API key',
-    s: 'Admin settings page reserved; key to be entered later by user.',
-    scope: [
-      'User: generate Vapi API key',
-      'User: paste into admin settings page in dashboard',
-      'Claude: wire voice registration via key'
-    ]
-  },
-  { id: 'OMN-200', col: 'wait', proj: 'omnicity', pri: 'high',
-    t: 'Vercel env vars for OAuth',
-    s: 'Google + GitHub only per user choice. User to set in Vercel.',
-    scope: [
-      'Set GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET',
-      'Set GITHUB_CLIENT_ID + GITHUB_CLIENT_SECRET',
-      'Set NEXTAUTH_URL + NEXTAUTH_SECRET',
-      'Redeploy via Vercel'
-    ]
-  },
-  { id: 'HUB-203', col: 'wait', proj: 'hub', pri: 'high',
-    t: 'Upress SSL renewal OR Cloudflare in front',
-    s: 'Cert/SSL-termination on hub.d3v.co.il broken — POST to wp-json over HTTPS fails. Cloudflare path is permanent fix.',
-    scope: [
-      'Option A: Renew cert in Upress (5 min, vulnerable to future expiry)',
-      'Option B: Put Cloudflare in front (free tier, Full SSL — recommended permanent fix)',
-      'Test: https://hub.d3v.co.il/wp-json/ returns JSON',
-      'Then verify handshake on 2wheel.it'
-    ]
-  },
-  { id: 'CNV-101', col: 'wait', proj: 'cnvs', pri: 'med',
-    t: 'AI Mode end-to-end test',
-    s: 'Plumbed but cloud /ai/agent on Fly.io may not exist yet. Fallback to /ai documented but not exercised.',
-    scope: [
-      'Manual mode → AI mode toggle works',
-      'Type "add a red sphere at origin"',
-      'Verify tool-call cards appear in chat',
-      'Verify sphere added to scene',
-      'Switch to Manual mode → sphere editable in panels',
-      'Switch back to AI → conversation resumes from cross-session storage'
-    ]
-  },
-  { id: 'CNV-102', col: 'wait', proj: 'cnvs', pri: 'high',
-    t: 'Local site config — Apache fcgid timeouts + memory',
-    s: 'Updated cnvs-studio Local site .hbs templates: FcgidIOTimeout 600, memory_limit 1024M, display_errors Off, .htaccess created. User needs to STOP+START the Local site to apply.',
-    scope: [
-      'User: stop cnvs-studio site in Local',
-      'User: start cnvs-studio site in Local',
-      'Verify Elementor pages no longer timeout / spew PHP warnings'
-    ]
-  },
+  { id: 'HUB-200', col: 'wait', proj: 'hub', pri: 'high', t: 'Track B — 108-site bulk install (path pick)', s: 'Sub-agent surfaced 3 paths after measuring real timing (3-5min/site = 5-9hrs). Pick: A marathon / B validated batch + script / C check Upress for native bulk-deploy first.', scope: ['User: pick A / B / C', 'Recommended: C → B → A — 10min check on Upress could save 6+ hours'] },
+  { id: 'HUB-201', col: 'wait', proj: 'hub', pri: 'high', t: 'v2.5.0 features — repo access (LET\'S GOOOO)', s: 'Sub-agent ready to ship 5 features (Favorites → Bulk Actions → Whois → ArticleDraftCard with Publish-to-site button → Sprint Planner). Picks: i GH PAT, ii local checkout mount, iii Chrome MCP gh device-code.', scope: ['User: pick i / ii / iii to unblock', 'Ship 1: per-site Favorites flag', 'Ship 2: Bulk Actions grid (multi-select fan-out)', 'Ship 3: Check All Whois (24h cache)', 'Ship 4: ArticleDraftCard + Publish-to-site CTA', 'Ship 5: Sprint Planner (drag-drop)', 'Bump to 2.5.0 + tag → CI auto-pushes'] },
+  { id: 'SBR-201', col: 'wait', proj: 'songbyrd', pri: 'med', t: 'Vapi API key', s: 'Admin settings page reserved; key to be entered later.', scope: ['User: generate Vapi API key', 'User: paste into admin settings', 'Claude: wire voice registration'] },
+  { id: 'OMN-200', col: 'wait', proj: 'omnicity', pri: 'high', t: 'Vercel env vars for OAuth', s: 'Google + GitHub only per user choice.', scope: ['Set GOOGLE_CLIENT_ID + SECRET', 'Set GITHUB_CLIENT_ID + SECRET', 'Set NEXTAUTH_URL + NEXTAUTH_SECRET', 'Redeploy via Vercel'] },
+  { id: 'HUB-203', col: 'wait', proj: 'hub', pri: 'high', t: 'Upress SSL renewal OR Cloudflare in front', s: 'Cert/SSL on hub.d3v.co.il broken. Cloudflare path is permanent fix.', scope: ['Option A: Renew cert in Upress (5 min)', 'Option B: Cloudflare free tier, Full SSL — recommended', 'Test: https://hub.d3v.co.il/wp-json/ returns JSON', 'Verify handshake on 2wheel.it'] },
+  { id: 'JEP-102', col: 'wait', proj: 'jepeto', pri: 'med', t: 'Push v1.2.1 license-page fix to GitHub', s: 'Sub-agent edited cnvs.local files directly. User to commit + push from Windows terminal.', scope: ['cd C:\\Users\\ozomr\\Local Sites\\cnvs\\app\\public\\wp-content\\plugins\\jepeto-wp-main', 'git add jepeto-wp.php includes/licenser-sdk/AdminUI.php', 'git commit -m "fix(licenser): derive page slug from product_slug"', 'git tag v1.2.1 && git push origin main --tags', 'Optional: also patch upstream OppositeX/licenser SDK'] },
+  { id: 'CNV-101', col: 'wait', proj: 'cnvs', pri: 'med', t: 'AI Mode end-to-end test', s: 'Plumbed but cloud /ai/agent on Fly.io may not exist yet.', scope: ['Manual → AI mode toggle works', 'Type "add a red sphere at origin"', 'Verify tool-call cards in chat', 'Verify sphere added to scene', 'Switch back, edit in panels', 'Conversation resumes'] },
+  { id: 'CNV-102', col: 'wait', proj: 'cnvs', pri: 'high', t: 'Local site config — fcgid + memory', s: 'Updated cnvs-studio Local site .hbs templates. User needs to STOP+START the Local site to apply.', scope: ['User: stop cnvs-studio site in Local', 'User: start cnvs-studio site in Local', 'Verify Elementor pages no longer timeout'] },
 
-  // ===== CNVS STUDIO ARCHIVE =====
-  { id: 'CNV-001', col: 'archive', proj: 'cnvs', pri: 'high', t: 'v3.0 single-pipeline refactor', s: 'Bundle bypassed during LU; direct-apply + enhanceFromSettings are the only LU sinks. Scene-empty invariant guard active.' },
-  { id: 'CNV-002', col: 'archive', proj: 'cnvs', pri: 'med',  t: 'Design system unification', s: 'cnvs-tokens.css canonical; --ce-* and --cs-* aliased. DESIGN-SYSTEM.md authored.' },
-  { id: 'CNV-003', col: 'archive', proj: 'cnvs', pri: 'med',  t: 'AI Mode chat panel plumbed', s: 'cnvs-ai-chat.js + agent endpoint + mode toggle + usage telemetry. End-to-end test pending.' },
+  { id: 'CNV-001', col: 'archive', proj: 'cnvs', pri: 'high', t: 'v3.0 single-pipeline refactor', s: 'Bundle bypassed during LU. Scene-empty invariant guard active.' },
+  { id: 'CNV-002', col: 'archive', proj: 'cnvs', pri: 'med', t: 'Design system unification', s: 'cnvs-tokens.css canonical. DESIGN-SYSTEM.md authored.' },
+  { id: 'CNV-003', col: 'archive', proj: 'cnvs', pri: 'med', t: 'AI Mode chat panel plumbed', s: 'cnvs-ai-chat.js + agent endpoint + mode toggle. Test pending.' },
 
-  // ===== BACKLOG / DEFERRED =====
-  { id: 'CNV-300', col: 'back', proj: 'cnvs', pri: 'med',
-    t: 'TRELLIS via fal.ai — alternate 3D provider',
-    s: 'Add provider toggle in CNVS settings (Fly.io / TRELLIS via fal.ai). Don\'t remove Fly.io until user verifies TRELLIS quality.',
-    scope: [
-      'Add 3D Provider dropdown to settings page (Hunyuan Fly.io | TRELLIS fal.ai)',
-      'Wire fal.ai TRELLIS path alongside existing Hunyuan call',
-      'Image→3D button routes to selected provider',
-      'Test side-by-side quality + speed',
-      'User decides if/when to default to TRELLIS',
-      'Decommission Fly.io only after explicit user OK'
-    ]
-  },
-  { id: 'CNV-200', col: 'back', proj: 'cnvs', pri: 'med',
-    t: 'Image→3D direct path (deprecate iframe)',
-    s: 'Build canvas_studio_image_to_3d AJAX + api.cnvs.studio/ai/hunyuan cloud route. Iframe modal still works as fallback.',
-    scope: [
-      'Build canvas_studio_image_to_3d AJAX endpoint',
-      'Build api.cnvs.studio/ai/hunyuan cloud route',
-      'Sideload generated GLB to media library',
-      'Trigger add_element from result',
-      'Deprecate aiframe.cnvs.studio iframe modal'
-    ]
-  },
-  { id: 'CNV-201', col: 'back', proj: 'cnvs', pri: 'low',
-    t: 'Theatre.js Phase 3 — full removal',
-    s: 'Pending. Depends on v1.0 audit + v3 single-pipeline being fully stable. Bridge code in cnvs-theatre-bridge.js is starting point.',
-    scope: [
-      'Write concrete plan in workspace md',
-      'Inventory every Theatre.js touchpoint',
-      'Design replacement state/animation system',
-      'Phased migration with dual-path period',
-      'Remove core-and-studio.js + core-only.min.js once cutover complete'
-    ]
-  },
-  { id: 'CNV-202', col: 'back', proj: 'cnvs', pri: 'low', t: 'Map prop conditional visibility', s: 'Hide bump_scale / no
+  { id: 'CNV-300', col: 'back', proj: 'cnvs', pri: 'med', t: 'TRELLIS via fal.ai — alternate 3D provider', s: 'Add provider toggle. Don\'t remove Fly.io until verified.', scope: ['Add 3D Provider dropdown', 'Wire fal.ai TRELLIS path', 'Image→3D routes to selected provider', 'Test side-by-side', 'Decommission Fly.io after explicit user OK'] },
+  { id: 'CNV-200', col: 'back', proj: 'cnvs', pri: 'med', t: 'Image→3D direct path (deprecate iframe)', s: 'Build canvas_studio_image_to_3d AJAX + cloud route.', scope: ['Build AJAX endpoint', 'Build api.cnvs.studio/ai/hunyuan cloud route', 'Sideload generated GLB to media library', 'Trigger add_element from result', 'Deprecate aiframe.cnvs.studio iframe'] },
+  { id: 'CNV-201', col: 'back', proj: 'cnvs', pri: 'low', t: 'Theatre.js Phase 3 — full removal', s: 'Pending. Depends on v1.0 audit + v3 stability.', scope: ['Write concrete plan', 'Inventory every Theatre.js touchpoint', 'Design replacement state/animation system', 'Phased migration with dual-path period', 'Remove core-and-studio.js'] },
+  { id: 'CNV-202', col: 'back', proj: 'cnvs', pri: 'low', t: 'Map prop conditional visibility', s: 'Hide bump_scale / normal_scale_x_y when parent map not set.' },
+  { id: 'CNV-203', col: 'back', proj: 'cnvs', pri: 'low', t: 'Stale marble_bust_01.gltf cleanup', s: 'element_3 references 404 textures/bin. Add 404-fetch check.' },
+  { id: 'CNV-204', col: 'back', proj: 'cnvs', pri: 'low', t: 'Settings panel Elementor preview lag', s: 'Two-second AJAX delay on first open. Profile + reduce.' },
+  { id: 'CLP-900', col: 'back', proj: 'clpr', pri: 'low', t: 'Marketing + Agent Studios', s: 'DROPPED — not in upstream.' },
+  { id: 'HUB-900', col: 'back', proj: 'hub', pri: 'low', t: 'Sprint Planner (v2.5.0)', s: 'Folded into HUB-201.' },
+  { id: 'HUB-901', col: 'back', proj: 'hub', pri: 'low', t: 'Favorites feature', s: 'Folded into HUB-201.' }
+];
+
+const cols = [
+  { id: 'done',    name: 'Done',         tone: '#5DCAA5' },
+  { id: 'archive', name: 'Archive',      tone: '#888780', hidden: true },
+  { id: 'wip',     name: 'In progress',  tone: '#85B7EB' },
+  { id: 'wait',    name: 'Awaiting you', tone: '#EF9F27' },
+  { id: 'back',    name: 'Backlog',      tone: '#888780' }
+];
+
+let activeProj = 'all';
+let archiveVisible = localStorage.getItem('kanban_archive_visible') === 'true';
+const expanded = new Set();
+const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
+function persistChecks() { localStorage.setItem('kanban_checks', JSON.stringify(checks)); }
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).catch(() => fallback()); }
+  else { fallback(); }
+  function fallback() {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function pingClaude(task, action) {
+  const now = new Date().toISOString();
+  let msg = ''; let mutated = false;
+  switch (action) {
+    case 'done':
+      colOverride[task.id] = 'done';
+      shippedOverride[task.id] = now;
+      if (!effectiveStarted(task)) startedOverride[task.id] = task.startedAt || now;
+      mutated = true;
+      toast(`✓ Marked ${task.id} done`);
+      msg = `Mark task ${task.id} ("${task.t}") as done.`;
+      break;
+    case 'start':
+      colOverride[task.id] = 'wip';
+      startedOverride[task.id] = now;
+      delete shippedOverride[task.id];
+      mutated = true;
+      toast(`▶ Started ${task.id}`);
+      msg = `Start working on task ${task.id} ("${task.t}") right now.`;
+      break;
+    case 'block':
+      colOverride[task.id] = 'wait';
+      delete shippedOverride[task.id];
+      mutated = true;
+      toast(`⚠ Blocked ${task.id}`);
+      msg = `Task ${task.id} ("${task.t}") is blocked. Help me unblock it.`;
+      break;
+    case 'note':
+      const note = prompt(`Note for ${task.id}:`, '');
+      if (!note) return;
+      msg = `Update for task ${task.id} ("${task.t}"): ${note}`;
+      break;
+    case 'reset':
+      delete colOverride[task.id];
+      delete shippedOverride[task.id];
+      delete startedOverride[task.id];
+      mutated = true;
+      toast(`↩ Reset ${task.id}`);
+      break;
+    default:
+      msg = `Task ${task.id}: ${task.t}`;
+  }
+  if (mutated) { persistOverrides(); renderSummary(); renderGrid(); }
+  if (msg) window.open(CLAUDE_URL + encodeURIComponent(msg), '_blank');
+}
+
+function renderSummary() {
+  const total = tasks.length;
+  const done = tasks.filter(t => effectiveCol(t) === 'done').length;
+  const wip  = tasks.filter(t => effectiveCol(t) === 'wip').length;
+  const wait = tasks.filter(t => effectiveCol(t) === 'wait').length;
+  document.getElementById('summary').innerHTML = `
+    <div class="stat"><span class="stat-label">Total</span><div class="stat-value">${total}</div></div>
+    <div class="stat"><span class="stat-label">Shipped</span><div class="stat-value">${done}</div></div>
+    <div class="stat"><span class="stat-label">Active</span><div class="stat-value">${wip}</div></div>
+    <div class="stat"><span class="stat-label">On you</span><div class="stat-value">${wait}</div></div>`;
+}
+
+function renderFilters() {
+  const counts = {};
+  tasks.forEach(t => { counts[t.proj] = (counts[t.proj] || 0) + 1; });
+  let html = `<button class="chip ${activeProj === 'all' ? 'active' : ''}" data-proj="all">All <span style="opacity:.7">${tasks.length}</span></button>`;
+  Object.keys(projects).forEach(k => {
+    const p = projects[k];
+    const c = counts[k] || 0;
+    html += `<button class="chip ${activeProj === k ? 'active' : ''}" data-proj="${k}"><span class="dot" style="background:${p.color}"></span>${p.name} <span style="opacity:.7">${c}</span></button>`;
+  });
+  const el = document.getElementById('filters');
+  el.innerHTML = html;
+  el.querySelectorAll('.chip').forEach(b => {
+    b.addEventListener('click', () => { activeProj = b.dataset.proj; renderFilters(); renderGrid(); });
+  });
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+function formatElapsed(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (day >= 1) return `${day}d ${hr % 24}h`;
+  if (hr >= 1) return `${hr}h ${min % 60}m`;
+  if (min >= 1) return `${min}m`;
+  return `${sec}s`;
+}
+
+function renderTimer(task) {
+  const col = effectiveCol(task);
+  const startedAt = effectiveStarted(task);
+  const shippedAt = effectiveShipped(task);
+  if (col === 'wip' && startedAt) {
+    const elapsed = Date.now() - new Date(startedAt).getTime();
+    return `<span class="timer live"><span class="pulse"></span>${formatElapsed(elapsed)}</span>`;
+  }
+  if (col === 'done' && startedAt && shippedAt) {
+    const elapsed = new Date(shippedAt).getTime() - new Date(startedAt).getTime();
+    return `<span class="timer shipped">✓ ${formatElapsed(elapsed)}</span>`;
+  }
+  return '';
+}
+
+function scopeProgress(task) {
+  if (!task.scope || !task.scope.length) return null;
+  const taskChecks = checks[task.id] || {};
+  const done = task.scope.filter((_, i) => taskChecks[i]).length;
+  return { done, total: task.scope.length };
+}
+
+function renderCard(t) {
+  const p = projects[t.proj];
+  const pri = priorities[t.pri];
+  const isExpanded = expanded.has(t.id);
+  const overridden = isOverridden(t);
+  const prog = scopeProgress(t);
+  const progStr = prog ? `<span class="scope-progress">${prog.done}/${prog.total}</span>` : '';
+  let scopeHtml = '';
+  if (isExpanded) {
+    if (t.scope && t.scope.length) {
+      const taskChecks = checks[t.id] || {};
+      scopeHtml = `<div class="scope"><div class="scope-label">Scope</div>${t.scope.map((item, i) => {
+        const checked = !!taskChecks[i];
+        return `<label class="check ${checked ? 'checked' : ''}" data-task="${t.id}" data-i="${i}"><input type="checkbox" ${checked ? 'checked' : ''}><span class="check-text">${escapeHtml(item)}</span></label>`;
+      }).join('')}</div>`;
+    } else { scopeHtml = `<div class="scope"><div class="scope-empty">No checklist for this task yet.</div></div>`; }
+  }
+  const timerHtml = renderTimer(t);
+  const resetBtn = overridden ? `<button class="act reset" data-act="reset" data-task="${t.id}" title="Reset — clear local override">↩</button>` : '';
+  return `<div class="card ${isExpanded ? 'expanded' : ''} ${overridden ? 'overridden' : ''}" data-task="${t.id}">
+    <div class="card-top">
+      <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${timerHtml}<span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span></div>
+    </div>
+    <p class="card-title" data-toggle="${t.id}">${escapeHtml(t.t)}${progStr}</p>
+    <p class="card-sub" data-toggle="${t.id}">${escapeHtml(t.s)}</p>
+    ${scopeHtml}
+    <div class="card-foot">
+      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
+      <div class="actions">
+        <button class="act done" data-act="done" data-task="${t.id}" title="Mark done locally + ping Claude">✓</button>
+        <button class="act start" data-act="start" data-task="${t.id}" title="Start now + ping Claude">▶</button>
+        <button class="act block" data-act="block" data-task="${t.id}" title="Blocked — ping Claude">⚠</button>
+        <button class="act note" data-act="note" data-task="${t.id}" title="Note for Claude">✏</button>
+        ${resetBtn}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGrid() {
+  const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
+  const visibleCols = cols.filter(c => !c.hidden || (c.id === 'archive' && archiveVisible));
+  const gridEl = document.getElementById('grid');
+  const isMobile = window.innerWidth < 900;
+  gridEl.style.gridTemplateColumns = isMobile ? '1fr' : `repeat(${visibleCols.length}, minmax(0, 1fr))`;
+  const archiveCount = tasks.filter(t => effectiveCol(t) === 'archive').length;
+  const toggleEl = document.getElementById('archive-toggle');
+  if (toggleEl) {
+    toggleEl.classList.toggle('on', archiveVisible);
+    toggleEl.innerHTML = `${archiveVisible ? 'Hide' : 'Show'} archive <span class="badge">${archiveCount}</span>`;
+  }
+  gridEl.innerHTML = visibleCols.map(col => {
+    const colTasks = filtered.filter(t => effectiveCol(t) === col.id);
+    const cards = colTasks.map(renderCard).join('') || '<div class="empty">Nothing here</div>';
+    return `<div class="col"><div class="col-head"><span class="col-name" style="color:${col.tone}">${col.name}</span><span class="col-count">${colTasks.length}</span></div>${cards}</div>`;
+  }).join('');
+
+  document.querySelectorAll('.card-id').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      copyText(id);
+      el.classList.add('copied');
+      toast(`Copied ${id}`);
+      setTimeout(() => el.classList.remove('copied'), 1200);
+    });
+  });
+  document.querySelectorAll('[data-toggle]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.toggle;
+      if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+      renderGrid();
+    });
+  });
+  document.querySelectorAll('.check').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation(); e.preventDefault();
+      const id = el.dataset.task;
+      const i = parseInt(el.dataset.i, 10);
+      checks[id] = checks[id] || {};
+      checks[id][i] = !checks[id][i];
+      persistChecks();
+      renderGrid();
+    });
+  });
+  document.querySelectorAll('.act').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.task;
+      const act = el.dataset.act;
+      const task = tasks.find(t => t.id === id);
+      if (task) pingClaude(task, act);
+    });
+  });
+}
+
+function renderQlinks() {
+  const el = document.getElementById('qlinks');
+  el.innerHTML = Object.keys(projects).map(k => {
+    const p = projects[k];
+    const linksHtml = (p.links || []).map(l => `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}">${linkIcons[l.kind] || linkIcons.live}</a>`).join('');
+    const logoInner = p.logoUrl ? `<img src="${p.logoUrl}" alt="${escapeHtml(p.name)}" onerror="this.parentElement.classList.remove('bare');this.parentElement.style.background='${p.color}';this.replaceWith(document.createTextNode('${p.logo}'));">` : p.logo;
+    const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
+    const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
+    return `<div class="qcard"><div class="${logoClass}" style="${logoStyle}">${logoInner}</div><div class="qname">${p.name}</div><div class="qlinks-row">${linksHtml}</div></div>`;
+  }).join('');
+}
+
+document.getElementById('archive-toggle').addEventListener('click', () => {
+  archiveVisible = !archiveVisible;
+  localStorage.setItem('kanban_archive_visible', String(archiveVisible));
+  renderGrid();
+});
+document.getElementById('reset-all').addEventListener('click', () => {
+  if (!confirm('Clear all locally-saved column overrides? Cards will return to their source state.')) return;
+  colOverride = {}; shippedOverride = {}; startedOverride = {};
+  persistOverrides(); renderSummary(); renderGrid();
+  toast('↩ Cleared all local overrides');
+});
+
+let _resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(_resizeTimer); _resizeTimer = setTimeout(renderGrid, 150); });
+
+setInterval(() => {
+  document.querySelectorAll('.timer.live').forEach(el => {
+    const card = el.closest('.card');
+    if (!card) return;
+    const id = card.dataset.task;
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    const startedAt = effectiveStarted(task);
+    if (!startedAt) return;
+    const elapsed = Date.now() - new Date(startedAt).getTime();
+    const pulse = el.querySelector('.pulse');
+    el.innerHTML = (pulse ? '<span class="pulse"></span>' : '') + formatElapsed(elapsed);
+  });
+}, 30000);
+
+renderSummary();
+renderQlinks();
+renderFilters();
+renderGrid();
+</script>
+</body>
+</html>
