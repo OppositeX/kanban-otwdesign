@@ -43,9 +43,16 @@ body {
 .col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
 .col-name { font-size: 13px; font-weight: 500; }
 .col-count { font-size: 11px; color: #8a8a85; background: #1f1f24; padding: 2px 8px; border-radius: 999px; border: 0.5px solid rgba(255,255,255,0.06); }
-.card { background: #1c1c20; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.06); padding: 10px 12px; margin-bottom: 8px; transition: border-color 0.1s; }
+.card { background: #1c1c20; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.06); padding: 10px 12px; margin-bottom: 8px; transition: border-color 0.1s, opacity 0.15s, transform 0.1s; cursor: grab; }
+.card:active { cursor: grabbing; }
 .card.expanded { border-color: rgba(255,255,255,0.18); }
 .card.overridden { border-left: 2px solid rgba(133,183,235,0.5); }
+.card.dragging { opacity: 0.4; transform: scale(0.98); }
+.col.drop-target { background: #1a2030; outline: 1.5px dashed rgba(133,183,235,0.5); outline-offset: -4px; }
+.col-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; padding: 10px 12px; background: #16161a; border-radius: 10px; border: 0.5px solid rgba(255,255,255,0.06); }
+.col-toggles .chip { opacity: 0.45; }
+.col-toggles .chip.active { opacity: 1; background: #1f1f24; color: #efefed; border-color: rgba(255,255,255,0.18); }
+.col-toggles .chip.active:hover { border-color: rgba(255,255,255,0.32); }
 .card-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 6px; }
 .card-tag { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.2px; }
 .card-id { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 10px; color: #6f6f6a; background: #0f0f12; padding: 2px 6px; border-radius: 4px; border: 0.5px solid rgba(255,255,255,0.06); cursor: pointer; user-select: all; transition: color 0.1s, border-color 0.1s; }
@@ -121,13 +128,11 @@ body {
   </div>
   <div class="banner">
     <span class="banner-dot"></span>
-    Tap a card to expand its checklist · Tap the ID pill to copy · ✓ marks done locally + pings Claude · ▶ starts · ⚠ blocks · ✏ adds a note · ↩ resets one card.
+    Drag cards between columns · Tap a card to expand its checklist · Tap the ID pill to copy · ✓ ▶ ⚠ silently change column · ✏ pings Claude with a note · ↩ resets one card.
   </div>
   <div class="filters" id="filters"></div>
+  <div class="col-toggles" id="col-toggles"></div>
   <div class="grid" id="grid"></div>
-  <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
-    <button class="archive-toggle" id="archive-toggle">Show archive <span class="badge" id="archive-count">0</span></button>
-  </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -179,6 +184,11 @@ const tasks = [
   { id: 'CNV-100', col: 'done', proj: 'cnvs', pri: 'high', startedAt: '2026-05-04T22:25:00Z', shippedAt: '2026-05-05T03:00:00Z', t: 'v3 handbook + roadmap shipped', s: '13 ship gates pinned. Three-bucket framing (v0.0.50 features / v2 customizations / v2 unfinished). Test methodology, ~78-page test corpus, settings-migration scaffold, visibility-rules registry, plugin coexistence rules. cnvs-claude-handbook.md + cnvs-v3-roadmap.md delivered.' },
   { id: 'CNV-103', col: 'done', proj: 'cnvs', pri: 'high', startedAt: '2026-05-05T02:00:00Z', shippedAt: '2026-05-05T03:30:00Z', t: 'v3 repo bootstrap', s: 'GLOO-ooo/cnvs-studio-v3 created (private). Plugin staged: folder canvas-studio-v3, name "CNVS Studio", v3.0.0. Installed alongside v0.0.50, both visible in WP admin, no fatal errors. Initial commit bundled — awaiting user push.' },
   { id: 'CNV-105', col: 'done', proj: 'cnvs', pri: 'high', startedAt: '2026-05-05T02:30:00Z', shippedAt: '2026-05-05T04:00:00Z', t: 'v0.0.50 baseline capture', s: '106 pages enumerated, 36 captured with state.json metadata across all 12 feature areas. 3 broken in baseline (gaussian, gaussian-2, testcss3d). 5 anomalies documented. Outputs/cnvs-baseline/ ready to feed swap-test harness.' },
+  { id: 'CNV-110', col: 'done', proj: 'cnvs', pri: 'high', startedAt: '2026-05-08T20:00:00Z', shippedAt: '2026-05-09T18:00:00Z', t: 'v3.0.47–3.0.55 shipping spree', s: 'Nine versions in two days. Mix of v0.5 parity restoration + new ground. See scope.', scope: ['3.0.47 — Enter-key commits number/text inputs', '3.0.47 — Material color preserved across type swap (snapshot/restore)', '3.0.47 — Prop-bool toggles delegated (unbroke many toggles)', '3.0.48 — Element ↔ Material navigation cards (bidirectional)', '3.0.49 — Vec3 picker on Custom Origin', '3.0.49 — Render-surface auto z-index by menu order', '3.0.49 — Performance popup wrapper (drag/persist/shrink/dock)', '3.0.50 — Fog live update via enhanceFromSettings', '3.0.50 — Film scanline_intensity + count knobs (renderer reads, schema lacked)', '3.0.51 — Drag-reorder above/below drop indicator', '3.0.52 — Camera/Scene singleton settings tab (zoom/pan/rotate reachable)', '3.0.53 — MCP Layer 1 tool registry (cnvs-tool-registry.js)', '3.0.53 — AI thinking modal "Done" state + check + View button', '3.0.54 — Unified toast manager (cnvs-toast.js)', '3.0.55 — Property tooltip system + first-pass descriptions'] },
+  { id: 'CNV-111', col: 'done', proj: 'cnvs', pri: 'high', startedAt: '2026-05-09T18:00:00Z', shippedAt: '2026-05-09T20:30:00Z', t: 'Property tooltip backfill — pass 2 (3.0.56)', s: 'Tooltips now cover lights (type/intensity/position/distance/decay/angle/penumbra/shadows), every texture map slot (color/roughness/metalness/bump/normal/AO/light/alpha/env/displacement/matcap/emissive/thickness/transmission/iridescence + scales), all post-fx knobs (glitch/halftone/ripple/RGBShift/outline/lensflare/godrays/dotscreen/afterimage/sobel/luminosity/sepia/ascii), render surfaces, canvas height, loading indicator location/z-index.' },
+  { id: 'CNV-114', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:00:00Z', shippedAt: '2026-05-09T20:30:00Z', t: 'Light info cards (3.0.56)', s: 'Parallel to element/material cards. When viewing a Light, shows: type + intensity + color swatch, target element (clickable nav if Look At is set), shadow status with map size. Clickable target card jumps to that element\'s prop panel.' },
+  { id: 'CNV-112', col: 'wait', proj: 'cnvs', pri: 'high', t: 'Verify v3.0.47–3.0.55 on user side', s: 'User explicitly flagged that prior "shipped" claims were untested. Needs hands-on verification before more parity work happens.', scope: ['Refresh editor and confirm Enter commits values (with flash)', 'Switch material types (Std → Points → Std), verify color held', 'Open a Camera entry — confirm Settings tab shows orbit zoom/pan/rotate toggles', 'Drag a render surface — see top/bottom drop line', 'Hover ? icons next to Color, Bloom Strength, FOV — confirm tooltip pops', 'Toggle stats — drag the popup, shrink it, dock it', 'Adjust fog from settings — should update without refresh'] },
+  { id: 'CNV-113', col: 'wait', proj: 'cnvs', pri: 'med', t: 'Timeline animation regression — needs repro', s: 'User reported "my timeline animation stopped working" without specific case. Code path looked intact (Theatre.js sequence.play), so blind fix is risky.', scope: ['User: which scene/page reproduces it?', 'User: console errors when pressing play?', 'Trace through Timeline.play → STATE.sheets → sequence.play'] },
   { id: 'VOY-100', col: 'done', proj: 'voyc', pri: 'high', startedAt: '2026-05-02T19:00:00Z', shippedAt: '2026-05-03T15:00:00Z', t: 'Supabase Auth — Phase 1', s: 'Project up at ojvlkauplvjekbvugkah.supabase.co. Google OAuth wired, signup tested end-to-end.' },
   { id: 'SBR-100', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-04-30T20:00:00Z', shippedAt: '2026-05-03T18:00:00Z', t: 'v0.2.0 — push, provision, polish', s: 'Both repos pushed. Render stub live. Vercel + Supabase live. Magic-link login working.' },
   { id: 'SBR-200', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-05-04T22:00:00Z', shippedAt: '2026-05-04T22:15:00Z', t: 'Logo received + cropped', s: 'Magenta phoenix mark cropped to 256px webp + dropped into kanban + dashboard.' },
@@ -237,10 +247,14 @@ const cols = [
 ];
 
 let activeProj = 'all';
-let archiveVisible = localStorage.getItem('kanban_archive_visible') === 'true';
+// Per-column visibility — defaults: archive hidden, others visible
+const defaultVisibility = { done: true, archive: false, wip: true, wait: true, back: true };
+let colVisibility = Object.assign({}, defaultVisibility, JSON.parse(localStorage.getItem('kanban_col_visibility') || '{}'));
+function persistColVisibility() { localStorage.setItem('kanban_col_visibility', JSON.stringify(colVisibility)); }
 const expanded = new Set();
 const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
 function persistChecks() { localStorage.setItem('kanban_checks', JSON.stringify(checks)); }
+let draggedTaskId = null;
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -263,7 +277,7 @@ function copyText(text) {
 
 function pingClaude(task, action) {
   const now = new Date().toISOString();
-  let msg = ''; let mutated = false;
+  let msg = ''; let mutated = false; let openClaude = false;
   switch (action) {
     case 'done':
       colOverride[task.id] = 'done';
@@ -271,7 +285,6 @@ function pingClaude(task, action) {
       if (!effectiveStarted(task)) startedOverride[task.id] = task.startedAt || now;
       mutated = true;
       toast(`✓ Marked ${task.id} done`);
-      msg = `Mark task ${task.id} ("${task.t}") as done.`;
       break;
     case 'start':
       colOverride[task.id] = 'wip';
@@ -279,19 +292,28 @@ function pingClaude(task, action) {
       delete shippedOverride[task.id];
       mutated = true;
       toast(`▶ Started ${task.id}`);
-      msg = `Start working on task ${task.id} ("${task.t}") right now.`;
       break;
     case 'block':
       colOverride[task.id] = 'wait';
       delete shippedOverride[task.id];
       mutated = true;
       toast(`⚠ Blocked ${task.id}`);
-      msg = `Task ${task.id} ("${task.t}") is blocked. Help me unblock it.`;
+      break;
+    case 'archive':
+      colOverride[task.id] = 'archive';
+      mutated = true;
+      toast(`📦 Archived ${task.id}`);
+      break;
+    case 'backlog':
+      colOverride[task.id] = 'back';
+      mutated = true;
+      toast(`Moved ${task.id} to backlog`);
       break;
     case 'note':
       const note = prompt(`Note for ${task.id}:`, '');
       if (!note) return;
       msg = `Update for task ${task.id} ("${task.t}"): ${note}`;
+      openClaude = true;
       break;
     case 'reset':
       delete colOverride[task.id];
@@ -302,9 +324,30 @@ function pingClaude(task, action) {
       break;
     default:
       msg = `Task ${task.id}: ${task.t}`;
+      openClaude = true;
   }
   if (mutated) { persistOverrides(); renderSummary(); renderGrid(); }
-  if (msg) window.open(CLAUDE_URL + encodeURIComponent(msg), '_blank');
+  if (openClaude && msg) window.open(CLAUDE_URL + encodeURIComponent(msg), '_blank');
+}
+
+function moveTask(taskId, newCol) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  const now = new Date().toISOString();
+  colOverride[taskId] = newCol;
+  if (newCol === 'done') {
+    shippedOverride[taskId] = now;
+    if (!effectiveStarted(task)) startedOverride[taskId] = task.startedAt || now;
+  } else if (newCol === 'wip') {
+    if (!effectiveStarted(task)) startedOverride[taskId] = now;
+    delete shippedOverride[taskId];
+  } else {
+    delete shippedOverride[taskId];
+  }
+  persistOverrides();
+  renderSummary();
+  renderGrid();
+  toast(`Moved ${taskId} to ${cols.find(c => c.id === newCol)?.name || newCol}`);
 }
 
 function renderSummary() {
@@ -390,7 +433,7 @@ function renderCard(t) {
   }
   const timerHtml = renderTimer(t);
   const resetBtn = overridden ? `<button class="act reset" data-act="reset" data-task="${t.id}" title="Reset — clear local override">↩</button>` : '';
-  return `<div class="card ${isExpanded ? 'expanded' : ''} ${overridden ? 'overridden' : ''}" data-task="${t.id}">
+  return `<div class="card ${isExpanded ? 'expanded' : ''} ${overridden ? 'overridden' : ''}" data-task="${t.id}" draggable="true">
     <div class="card-top">
       <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${timerHtml}<span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span></div>
@@ -413,21 +456,46 @@ function renderCard(t) {
 
 function renderGrid() {
   const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
-  const visibleCols = cols.filter(c => !c.hidden || (c.id === 'archive' && archiveVisible));
+  const visibleCols = cols.filter(c => colVisibility[c.id] !== false);
   const gridEl = document.getElementById('grid');
   const isMobile = window.innerWidth < 900;
   gridEl.style.gridTemplateColumns = isMobile ? '1fr' : `repeat(${visibleCols.length}, minmax(0, 1fr))`;
-  const archiveCount = tasks.filter(t => effectiveCol(t) === 'archive').length;
-  const toggleEl = document.getElementById('archive-toggle');
-  if (toggleEl) {
-    toggleEl.classList.toggle('on', archiveVisible);
-    toggleEl.innerHTML = `${archiveVisible ? 'Hide' : 'Show'} archive <span class="badge">${archiveCount}</span>`;
-  }
   gridEl.innerHTML = visibleCols.map(col => {
     const colTasks = filtered.filter(t => effectiveCol(t) === col.id);
     const cards = colTasks.map(renderCard).join('') || '<div class="empty">Nothing here</div>';
-    return `<div class="col"><div class="col-head"><span class="col-name" style="color:${col.tone}">${col.name}</span><span class="col-count">${colTasks.length}</span></div>${cards}</div>`;
+    return `<div class="col" data-col="${col.id}"><div class="col-head"><span class="col-name" style="color:${col.tone}">${col.name}</span><span class="col-count">${colTasks.length}</span></div>${cards}</div>`;
   }).join('');
+
+  // Drop targets — every column accepts cards
+  gridEl.querySelectorAll('.col').forEach(colEl => {
+    colEl.addEventListener('dragover', e => {
+      if (draggedTaskId) { e.preventDefault(); colEl.classList.add('drop-target'); }
+    });
+    colEl.addEventListener('dragleave', () => colEl.classList.remove('drop-target'));
+    colEl.addEventListener('drop', e => {
+      e.preventDefault();
+      colEl.classList.remove('drop-target');
+      if (!draggedTaskId) return;
+      const newCol = colEl.dataset.col;
+      moveTask(draggedTaskId, newCol);
+      draggedTaskId = null;
+    });
+  });
+
+  // Cards draggable
+  gridEl.querySelectorAll('.card').forEach(cardEl => {
+    cardEl.addEventListener('dragstart', e => {
+      draggedTaskId = cardEl.dataset.task;
+      cardEl.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', draggedTaskId); } catch (err) {}
+    });
+    cardEl.addEventListener('dragend', () => {
+      cardEl.classList.remove('dragging');
+      draggedTaskId = null;
+      gridEl.querySelectorAll('.col.drop-target').forEach(c => c.classList.remove('drop-target'));
+    });
+  });
 
   document.querySelectorAll('.card-id').forEach(el => {
     el.addEventListener('click', (e) => {
@@ -481,11 +549,24 @@ function renderQlinks() {
   }).join('');
 }
 
-document.getElementById('archive-toggle').addEventListener('click', () => {
-  archiveVisible = !archiveVisible;
-  localStorage.setItem('kanban_archive_visible', String(archiveVisible));
-  renderGrid();
-});
+function renderColToggles() {
+  const el = document.getElementById('col-toggles');
+  if (!el) return;
+  el.innerHTML = cols.map(c => {
+    const visible = colVisibility[c.id] !== false;
+    const count = tasks.filter(t => effectiveCol(t) === c.id).length;
+    return `<button class="chip col-toggle ${visible ? 'active' : ''}" data-col="${c.id}"><span class="dot" style="background:${c.tone}"></span>${c.name} <span style="opacity:.7">${count}</span></button>`;
+  }).join('');
+  el.querySelectorAll('.col-toggle').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = b.dataset.col;
+      colVisibility[id] = colVisibility[id] === false ? true : false;
+      persistColVisibility();
+      renderColToggles();
+      renderGrid();
+    });
+  });
+}
 document.getElementById('reset-all').addEventListener('click', () => {
   if (!confirm('Clear all locally-saved column overrides? Cards will return to their source state.')) return;
   colOverride = {}; shippedOverride = {}; startedOverride = {};
@@ -514,6 +595,7 @@ setInterval(() => {
 renderSummary();
 renderQlinks();
 renderFilters();
+renderColToggles();
 renderGrid();
 </script>
 </body>
