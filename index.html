@@ -117,7 +117,7 @@ body {
   <div class="head">
     <div>
       <h1 class="title">Project tasks</h1>
-      <p class="meta">8 active projects · last updated 2026-05-05</p>
+      <p class="meta">8 active projects · last updated 2026-05-05 · <span id="cloud-badge" style="font-size:11px;color:#8a8a85;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#8a8a85;margin-right:6px;"></span>local only — configure Supabase to sync</span></p>
     </div>
     <button class="archive-toggle" id="reset-all" title="Clear all locally-saved column overrides" style="margin-left:0;">↩ Reset local state</button>
   </div>
@@ -137,13 +137,106 @@ body {
 <div class="toast" id="toast"></div>
 <script>
 const CLAUDE_URL = 'https://claude.ai/new?q=';
+
+// ─── Cloud sync via Supabase (cross-device, survives localStorage clears) ───
+// Setup: create a free Supabase project, run the SQL in db/kanban-schema.sql,
+// then paste the project URL + anon public key here. Without these the board
+// still works locally (localStorage only) — just no cross-device sync.
+const SUPABASE_URL      = 'https://yxaxmqmkfyhsawbdlloo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YXhtcW1rZnloc2F3YmRsbG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MjQ2OTEsImV4cCI6MjA5NDIwMDY5MX0.lc_FdyLh-sfXDbuhXUm2aEqGdvb8PcxsAjw2Nqhy5gM';
+const KV_TABLE = 'kanban_kv';
+const KV_KEY_COL = 'col_override', KV_KEY_SHIP = 'shipped_override', KV_KEY_START = 'started_override';
+const sbConfigured = SUPABASE_URL && !SUPABASE_URL.includes('YOUR-') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('YOUR_');
+
+async function sbGet(key) {
+  if (!sbConfigured) return null;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + KV_TABLE + '?key=eq.' + encodeURIComponent(key) + '&select=value', {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return rows[0] && rows[0].value ? rows[0].value : null;
+  } catch (e) { return null; }
+}
+async function sbUpsert(key, value) {
+  if (!sbConfigured) return false;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + KV_TABLE + '?on_conflict=key', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({ key, value })
+    });
+    return r.ok;
+  } catch (e) { return false; }
+}
+
+// LocalStorage stays as a fast cache; Supabase is the canonical source when configured.
 let colOverride     = JSON.parse(localStorage.getItem('kanban_col_override')     || '{}');
 let shippedOverride = JSON.parse(localStorage.getItem('kanban_shipped_override') || '{}');
 let startedOverride = JSON.parse(localStorage.getItem('kanban_started_override') || '{}');
+let _sbHealthy = false;
+
+(async function hydrateFromCloud(){
+  if (!sbConfigured) { updateCloudBadge('local-only'); return; }
+  updateCloudBadge('syncing');
+  const [col, ship, start] = await Promise.all([ sbGet(KV_KEY_COL), sbGet(KV_KEY_SHIP), sbGet(KV_KEY_START) ]);
+  let changed = false;
+  if (col   && typeof col   === 'object') { colOverride     = col;   localStorage.setItem('kanban_col_override',     JSON.stringify(col));   changed = true; }
+  if (ship  && typeof ship  === 'object') { shippedOverride = ship;  localStorage.setItem('kanban_shipped_override', JSON.stringify(ship));  changed = true; }
+  if (start && typeof start === 'object') { startedOverride = start; localStorage.setItem('kanban_started_override', JSON.stringify(start)); changed = true; }
+  _sbHealthy = true;
+  updateCloudBadge('synced');
+  // If we pulled data, AND the user already had local mutations (the local was non-empty),
+  // push the merged local-wins for any keys missing in cloud so we don't lose work.
+  await mergeLocalIntoCloudIfNeeded();
+  if (changed && typeof renderAll === 'function') renderAll();
+  if (changed && typeof render === 'function') render();
+})();
+
+async function mergeLocalIntoCloudIfNeeded() {
+  // If cloud was empty for a key but local has data, push local up.
+  const localCol   = JSON.parse(localStorage.getItem('kanban_col_override')     || '{}');
+  const localShip  = JSON.parse(localStorage.getItem('kanban_shipped_override') || '{}');
+  const localStart = JSON.parse(localStorage.getItem('kanban_started_override') || '{}');
+  if (Object.keys(localCol).length   > Object.keys(colOverride).length)     await sbUpsert(KV_KEY_COL,   localCol);
+  if (Object.keys(localShip).length  > Object.keys(shippedOverride).length) await sbUpsert(KV_KEY_SHIP,  localShip);
+  if (Object.keys(localStart).length > Object.keys(startedOverride).length) await sbUpsert(KV_KEY_START, localStart);
+}
+
+function updateCloudBadge(state) {
+  const el = document.getElementById('cloud-badge'); if (!el) return;
+  const map = {
+    'local-only': { dot:'#8a8a85', txt:'local only — configure Supabase to sync' },
+    'syncing':    { dot:'#EF9F27', txt:'syncing…' },
+    'synced':     { dot:'#5DCAA5', txt:'cloud synced' },
+    'error':      { dot:'#E24B4A', txt:'sync error — using local cache' },
+  };
+  const m = map[state] || map['local-only'];
+  el.innerHTML = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+m.dot+';margin-right:6px;"></span>'+m.txt;
+}
+
+let _saveTimer = null;
 function persistOverrides() {
   localStorage.setItem('kanban_col_override',     JSON.stringify(colOverride));
   localStorage.setItem('kanban_shipped_override', JSON.stringify(shippedOverride));
   localStorage.setItem('kanban_started_override', JSON.stringify(startedOverride));
+  if (!sbConfigured) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(async () => {
+    updateCloudBadge('syncing');
+    const r = await Promise.all([
+      sbUpsert(KV_KEY_COL,   colOverride),
+      sbUpsert(KV_KEY_SHIP,  shippedOverride),
+      sbUpsert(KV_KEY_START, startedOverride),
+    ]);
+    updateCloudBadge(r.every(Boolean) ? 'synced' : 'error');
+  }, 600);
 }
 function effectiveCol(t)     { return colOverride[t.id]     || t.col; }
 function effectiveStarted(t) { return startedOverride[t.id] || t.startedAt; }
