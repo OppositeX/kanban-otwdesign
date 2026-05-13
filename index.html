@@ -329,6 +329,13 @@ const tasks = [
   { id: 'CNV-204', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: 'Settings panel first-open lag (3.0.57)', s: 'Parallelised get_project_states with settings + animation requests. Was serial after both resolved (~600-800ms RTT added on first open). Now all three fire concurrently using instance_id as project_id (matches in 99% of cases). Pre-warm + cache layer from earlier still applies.' },
 ];
 
+const cols = [
+  { id: 'done',    name: 'Done',         tone: '#5DCAA5' },
+  { id: 'archive', name: 'Archive',      tone: '#888780', hidden: true },
+  { id: 'wip',     name: 'In progress',  tone: '#85B7EB' },
+  { id: 'wait',    name: 'Awaiting you', tone: '#EF9F27' },
+  { id: 'back',    name: 'Backlog',      tone: '#888780' }
+];
 
 let activeProj = 'all';
 // Per-column visibility — defaults: archive hidden, others visible
