@@ -117,7 +117,7 @@ body {
   <div class="head">
     <div>
       <h1 class="title">Project tasks</h1>
-      <p class="meta">8 active projects · last updated 2026-05-05 · <span id="cloud-badge" style="font-size:11px;color:#8a8a85;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#8a8a85;margin-right:6px;"></span>local only — configure Supabase to sync</span></p>
+      <p class="meta">8 active projects · last updated 2026-05-05</p>
     </div>
     <button class="archive-toggle" id="reset-all" title="Clear all locally-saved column overrides" style="margin-left:0;">↩ Reset local state</button>
   </div>
@@ -137,106 +137,13 @@ body {
 <div class="toast" id="toast"></div>
 <script>
 const CLAUDE_URL = 'https://claude.ai/new?q=';
-
-// ─── Cloud sync via Supabase (cross-device, survives localStorage clears) ───
-// Setup: create a free Supabase project, run the SQL in db/kanban-schema.sql,
-// then paste the project URL + anon public key here. Without these the board
-// still works locally (localStorage only) — just no cross-device sync.
-const SUPABASE_URL      = 'https://yxaxmqmkfyhsawbdlloo.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YXhtcW1rZnloc2F3YmRsbG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MjQ2OTEsImV4cCI6MjA5NDIwMDY5MX0.lc_FdyLh-sfXDbuhXUm2aEqGdvb8PcxsAjw2Nqhy5gM';
-const KV_TABLE = 'kanban_kv';
-const KV_KEY_COL = 'col_override', KV_KEY_SHIP = 'shipped_override', KV_KEY_START = 'started_override';
-const sbConfigured = SUPABASE_URL && !SUPABASE_URL.includes('YOUR-') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('YOUR_');
-
-async function sbGet(key) {
-  if (!sbConfigured) return null;
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/' + KV_TABLE + '?key=eq.' + encodeURIComponent(key) + '&select=value', {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
-    });
-    if (!r.ok) return null;
-    const rows = await r.json();
-    return rows[0] && rows[0].value ? rows[0].value : null;
-  } catch (e) { return null; }
-}
-async function sbUpsert(key, value) {
-  if (!sbConfigured) return false;
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/' + KV_TABLE + '?on_conflict=key', {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify({ key, value })
-    });
-    return r.ok;
-  } catch (e) { return false; }
-}
-
-// LocalStorage stays as a fast cache; Supabase is the canonical source when configured.
 let colOverride     = JSON.parse(localStorage.getItem('kanban_col_override')     || '{}');
 let shippedOverride = JSON.parse(localStorage.getItem('kanban_shipped_override') || '{}');
 let startedOverride = JSON.parse(localStorage.getItem('kanban_started_override') || '{}');
-let _sbHealthy = false;
-
-(async function hydrateFromCloud(){
-  if (!sbConfigured) { updateCloudBadge('local-only'); return; }
-  updateCloudBadge('syncing');
-  const [col, ship, start] = await Promise.all([ sbGet(KV_KEY_COL), sbGet(KV_KEY_SHIP), sbGet(KV_KEY_START) ]);
-  let changed = false;
-  if (col   && typeof col   === 'object') { colOverride     = col;   localStorage.setItem('kanban_col_override',     JSON.stringify(col));   changed = true; }
-  if (ship  && typeof ship  === 'object') { shippedOverride = ship;  localStorage.setItem('kanban_shipped_override', JSON.stringify(ship));  changed = true; }
-  if (start && typeof start === 'object') { startedOverride = start; localStorage.setItem('kanban_started_override', JSON.stringify(start)); changed = true; }
-  _sbHealthy = true;
-  updateCloudBadge('synced');
-  // If we pulled data, AND the user already had local mutations (the local was non-empty),
-  // push the merged local-wins for any keys missing in cloud so we don't lose work.
-  await mergeLocalIntoCloudIfNeeded();
-  if (changed && typeof renderAll === 'function') renderAll();
-  if (changed && typeof render === 'function') render();
-})();
-
-async function mergeLocalIntoCloudIfNeeded() {
-  // If cloud was empty for a key but local has data, push local up.
-  const localCol   = JSON.parse(localStorage.getItem('kanban_col_override')     || '{}');
-  const localShip  = JSON.parse(localStorage.getItem('kanban_shipped_override') || '{}');
-  const localStart = JSON.parse(localStorage.getItem('kanban_started_override') || '{}');
-  if (Object.keys(localCol).length   > Object.keys(colOverride).length)     await sbUpsert(KV_KEY_COL,   localCol);
-  if (Object.keys(localShip).length  > Object.keys(shippedOverride).length) await sbUpsert(KV_KEY_SHIP,  localShip);
-  if (Object.keys(localStart).length > Object.keys(startedOverride).length) await sbUpsert(KV_KEY_START, localStart);
-}
-
-function updateCloudBadge(state) {
-  const el = document.getElementById('cloud-badge'); if (!el) return;
-  const map = {
-    'local-only': { dot:'#8a8a85', txt:'local only — configure Supabase to sync' },
-    'syncing':    { dot:'#EF9F27', txt:'syncing…' },
-    'synced':     { dot:'#5DCAA5', txt:'cloud synced' },
-    'error':      { dot:'#E24B4A', txt:'sync error — using local cache' },
-  };
-  const m = map[state] || map['local-only'];
-  el.innerHTML = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+m.dot+';margin-right:6px;"></span>'+m.txt;
-}
-
-let _saveTimer = null;
-function persistOverrides() {
+function persistOverrides() { try { sbPushOverrides(); } catch(e) {}
   localStorage.setItem('kanban_col_override',     JSON.stringify(colOverride));
   localStorage.setItem('kanban_shipped_override', JSON.stringify(shippedOverride));
   localStorage.setItem('kanban_started_override', JSON.stringify(startedOverride));
-  if (!sbConfigured) return;
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(async () => {
-    updateCloudBadge('syncing');
-    const r = await Promise.all([
-      sbUpsert(KV_KEY_COL,   colOverride),
-      sbUpsert(KV_KEY_SHIP,  shippedOverride),
-      sbUpsert(KV_KEY_START, startedOverride),
-    ]);
-    updateCloudBadge(r.every(Boolean) ? 'synced' : 'error');
-  }, 600);
 }
 function effectiveCol(t)     { return colOverride[t.id]     || t.col; }
 function effectiveStarted(t) { return startedOverride[t.id] || t.startedAt; }
@@ -270,6 +177,60 @@ const linkIcons = {
 };
 
 const priorities = { high: { label: 'High', color: '#E24B4A' }, med: { label: 'Med', color: '#EF9F27' }, low: { label: 'Low', color: '#888780' } };
+
+
+// ─── Cloud sync via Supabase (cross-device, survives localStorage clears) ───
+const SUPABASE_URL      = 'https://yxaxmqmkfyhsawbdlloo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YXhtcW1rZnloc2F3YmRsbG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MjQ2OTEsImV4cCI6MjA5NDIwMDY5MX0.lc_FdyLh-sfXDbuhXUm2aEqGdvb8PcxsAjw2Nqhy5gM';
+const KV_TABLE = 'kanban_kv';
+const KV_KEY_COL = 'col_override', KV_KEY_SHIP = 'shipped_override', KV_KEY_START = 'started_override';
+const sbConfigured = SUPABASE_URL && !SUPABASE_URL.includes('YOUR-') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('YOUR_');
+
+async function sbGet(key) {
+  if (!sbConfigured) return null;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + KV_TABLE + '?key=eq.' + encodeURIComponent(key) + '&select=value', {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return rows[0] && rows[0].value ? rows[0].value : null;
+  } catch (e) { return null; }
+}
+async function sbUpsert(key, value) {
+  if (!sbConfigured) return false;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + KV_TABLE + '?on_conflict=key', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({ key, value })
+    });
+    return r.ok;
+  } catch (e) { return false; }
+}
+async function sbPullOverrides() {
+  if (!sbConfigured) return false;
+  const [c, s, st] = await Promise.all([ sbGet(KV_KEY_COL), sbGet(KV_KEY_SHIP), sbGet(KV_KEY_START) ]);
+  if (c && typeof c === 'object') colOverride = c;
+  if (s && typeof s === 'object') shippedOverride = s;
+  if (st && typeof st === 'object') startedOverride = st;
+  persistOverrides();
+  return true;
+}
+async function sbPushOverrides() {
+  if (!sbConfigured) return false;
+  await Promise.all([
+    sbUpsert(KV_KEY_COL, colOverride),
+    sbUpsert(KV_KEY_SHIP, shippedOverride),
+    sbUpsert(KV_KEY_START, startedOverride)
+  ]);
+  return true;
+}
 
 const tasks = [
   { id: 'JEP-100', col: 'done', proj: 'jepeto', pri: 'high', startedAt: '2026-05-02T18:00:00Z', shippedAt: '2026-05-04T12:00:00Z', t: 'v1.1.4 shipped + Licenser SDK', s: 'v0.8.5 → v1.1.4 landed live (read+action tools, URL ingestion, image upload, Plan Mode, Keyword Burst, polish). Licenser SDK wired.' },
@@ -366,4 +327,377 @@ const tasks = [
   { id: 'CNV-202', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: 'Map prop conditional visibility (3.0.57)', s: 'New __hasValue__ / __noValue__ sentinels in cnvs-controls applyConditions. Sub-controls now hide when parent map empty: bump_scale ← bump_map, normal_scale_x/y ← normal_map, displacement_scale/bias ← displacement_map, ao_map_intensity ← ao_map. Conditions re-evaluate on media set + media remove.' },
   { id: 'CNV-203', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: '3D model 404 fetch check (3.0.57)', s: 'GLTFLoader now HEAD-probes the URL before loading. 404 / network failure → skip the loader entirely with a clear console line + a CNVSToast surfacing the file name. HEAD-405 servers fall through to a Range-byte-0 GET. Stops the opaque "Failed to load buffer" stack on stale assets like marble_bust_01.gltf.' },
   { id: 'CNV-204', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: 'Settings panel first-open lag (3.0.57)', s: 'Parallelised get_project_states with settings + animation requests. Was serial after both resolved (~600-800ms RTT added on first open). Now all three fire concurrently using instance_id as project_id (matches in 99% of cases). Pre-warm + cache layer from earlier still applies.' },
-  { id: 'CLP-900', col: 'back', proj: 'clpr', pri: 'low', t: 'Marketing + Agent Studios', s: 'DROPPED — not in 
+];
+
+
+let activeProj = 'all';
+// Per-column visibility — defaults: archive hidden, others visible
+const defaultVisibility = { done: true, archive: false, wip: true, wait: true, back: true };
+let colVisibility = Object.assign({}, defaultVisibility, JSON.parse(localStorage.getItem('kanban_col_visibility') || '{}'));
+function persistColVisibility() { localStorage.setItem('kanban_col_visibility', JSON.stringify(colVisibility)); }
+const expanded = new Set();
+const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
+function persistChecks() { localStorage.setItem('kanban_checks', JSON.stringify(checks)); }
+let draggedTaskId = null;
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).catch(() => fallback()); }
+  else { fallback(); }
+  function fallback() {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function pingClaude(task, action) {
+  const now = new Date().toISOString();
+  let msg = ''; let mutated = false; let openClaude = false;
+  switch (action) {
+    case 'done':
+      colOverride[task.id] = 'done';
+      shippedOverride[task.id] = now;
+      if (!effectiveStarted(task)) startedOverride[task.id] = task.startedAt || now;
+      mutated = true;
+      toast(`✓ Marked ${task.id} done`);
+      break;
+    case 'start':
+      colOverride[task.id] = 'wip';
+      startedOverride[task.id] = now;
+      delete shippedOverride[task.id];
+      mutated = true;
+      toast(`▶ Started ${task.id}`);
+      break;
+    case 'block':
+      colOverride[task.id] = 'wait';
+      delete shippedOverride[task.id];
+      mutated = true;
+      toast(`⚠ Blocked ${task.id}`);
+      break;
+    case 'archive':
+      colOverride[task.id] = 'archive';
+      mutated = true;
+      toast(`📦 Archived ${task.id}`);
+      break;
+    case 'backlog':
+      colOverride[task.id] = 'back';
+      mutated = true;
+      toast(`Moved ${task.id} to backlog`);
+      break;
+    case 'note':
+      const note = prompt(`Note for ${task.id}:`, '');
+      if (!note) return;
+      msg = `Update for task ${task.id} ("${task.t}"): ${note}`;
+      openClaude = true;
+      break;
+    case 'reset':
+      delete colOverride[task.id];
+      delete shippedOverride[task.id];
+      delete startedOverride[task.id];
+      mutated = true;
+      toast(`↩ Reset ${task.id}`);
+      break;
+    default:
+      msg = `Task ${task.id}: ${task.t}`;
+      openClaude = true;
+  }
+  if (mutated) { persistOverrides(); renderSummary(); renderGrid(); }
+  if (openClaude && msg) window.open(CLAUDE_URL + encodeURIComponent(msg), '_blank');
+}
+
+function moveTask(taskId, newCol) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  const now = new Date().toISOString();
+  colOverride[taskId] = newCol;
+  if (newCol === 'done') {
+    shippedOverride[taskId] = now;
+    if (!effectiveStarted(task)) startedOverride[taskId] = task.startedAt || now;
+  } else if (newCol === 'wip') {
+    if (!effectiveStarted(task)) startedOverride[taskId] = now;
+    delete shippedOverride[taskId];
+  } else {
+    delete shippedOverride[taskId];
+  }
+  persistOverrides();
+  renderSummary();
+  renderGrid();
+  toast(`Moved ${taskId} to ${cols.find(c => c.id === newCol)?.name || newCol}`);
+}
+
+function renderSummary() {
+  const total = tasks.length;
+  const done = tasks.filter(t => effectiveCol(t) === 'done').length;
+  const wip  = tasks.filter(t => effectiveCol(t) === 'wip').length;
+  const wait = tasks.filter(t => effectiveCol(t) === 'wait').length;
+  document.getElementById('summary').innerHTML = `
+    <div class="stat"><span class="stat-label">Total</span><div class="stat-value">${total}</div></div>
+    <div class="stat"><span class="stat-label">Shipped</span><div class="stat-value">${done}</div></div>
+    <div class="stat"><span class="stat-label">Active</span><div class="stat-value">${wip}</div></div>
+    <div class="stat"><span class="stat-label">On you</span><div class="stat-value">${wait}</div></div>`;
+}
+
+function renderFilters() {
+  const counts = {};
+  tasks.forEach(t => { counts[t.proj] = (counts[t.proj] || 0) + 1; });
+  let html = `<button class="chip ${activeProj === 'all' ? 'active' : ''}" data-proj="all">All <span style="opacity:.7">${tasks.length}</span></button>`;
+  Object.keys(projects).forEach(k => {
+    const p = projects[k];
+    const c = counts[k] || 0;
+    html += `<button class="chip ${activeProj === k ? 'active' : ''}" data-proj="${k}"><span class="dot" style="background:${p.color}"></span>${p.name} <span style="opacity:.7">${c}</span></button>`;
+  });
+  const el = document.getElementById('filters');
+  el.innerHTML = html;
+  el.querySelectorAll('.chip').forEach(b => {
+    b.addEventListener('click', () => { activeProj = b.dataset.proj; renderFilters(); renderGrid(); });
+  });
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+function formatElapsed(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (day >= 1) return `${day}d ${hr % 24}h`;
+  if (hr >= 1) return `${hr}h ${min % 60}m`;
+  if (min >= 1) return `${min}m`;
+  return `${sec}s`;
+}
+
+function renderTimer(task) {
+  const col = effectiveCol(task);
+  const startedAt = effectiveStarted(task);
+  const shippedAt = effectiveShipped(task);
+  if (col === 'wip' && startedAt) {
+    const elapsed = Date.now() - new Date(startedAt).getTime();
+    return `<span class="timer live"><span class="pulse"></span>${formatElapsed(elapsed)}</span>`;
+  }
+  if (col === 'done' && startedAt && shippedAt) {
+    const elapsed = new Date(shippedAt).getTime() - new Date(startedAt).getTime();
+    return `<span class="timer shipped">✓ ${formatElapsed(elapsed)}</span>`;
+  }
+  return '';
+}
+
+function scopeProgress(task) {
+  if (!task.scope || !task.scope.length) return null;
+  const taskChecks = checks[task.id] || {};
+  const done = task.scope.filter((_, i) => taskChecks[i]).length;
+  return { done, total: task.scope.length };
+}
+
+function renderCard(t) {
+  const p = projects[t.proj];
+  const pri = priorities[t.pri];
+  const isExpanded = expanded.has(t.id);
+  const overridden = isOverridden(t);
+  const prog = scopeProgress(t);
+  const progStr = prog ? `<span class="scope-progress">${prog.done}/${prog.total}</span>` : '';
+  let scopeHtml = '';
+  if (isExpanded) {
+    if (t.scope && t.scope.length) {
+      const taskChecks = checks[t.id] || {};
+      scopeHtml = `<div class="scope"><div class="scope-label">Scope</div>${t.scope.map((item, i) => {
+        const checked = !!taskChecks[i];
+        return `<label class="check ${checked ? 'checked' : ''}" data-task="${t.id}" data-i="${i}"><input type="checkbox" ${checked ? 'checked' : ''}><span class="check-text">${escapeHtml(item)}</span></label>`;
+      }).join('')}</div>`;
+    } else { scopeHtml = `<div class="scope"><div class="scope-empty">No checklist for this task yet.</div></div>`; }
+  }
+  const timerHtml = renderTimer(t);
+  const resetBtn = overridden ? `<button class="act reset" data-act="reset" data-task="${t.id}" title="Reset — clear local override">↩</button>` : '';
+  return `<div class="card ${isExpanded ? 'expanded' : ''} ${overridden ? 'overridden' : ''}" data-task="${t.id}" draggable="true">
+    <div class="card-top">
+      <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${timerHtml}<span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span></div>
+    </div>
+    <p class="card-title" data-toggle="${t.id}">${escapeHtml(t.t)}${progStr}</p>
+    <p class="card-sub" data-toggle="${t.id}">${escapeHtml(t.s)}</p>
+    ${scopeHtml}
+    <div class="card-foot">
+      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
+      <div class="actions">
+        <button class="act done" data-act="done" data-task="${t.id}" title="Mark done locally + ping Claude">✓</button>
+        <button class="act start" data-act="start" data-task="${t.id}" title="Start now + ping Claude">▶</button>
+        <button class="act block" data-act="block" data-task="${t.id}" title="Blocked — ping Claude">⚠</button>
+        <button class="act note" data-act="note" data-task="${t.id}" title="Note for Claude">✏</button>
+        ${resetBtn}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGrid() {
+  const filtered = activeProj === 'all' ? tasks : tasks.filter(t => t.proj === activeProj);
+  const visibleCols = cols.filter(c => colVisibility[c.id] !== false);
+  const gridEl = document.getElementById('grid');
+  const isMobile = window.innerWidth < 900;
+  gridEl.style.gridTemplateColumns = isMobile ? '1fr' : `repeat(${visibleCols.length}, minmax(0, 1fr))`;
+  gridEl.innerHTML = visibleCols.map(col => {
+    const colTasks = filtered.filter(t => effectiveCol(t) === col.id);
+    const cards = colTasks.map(renderCard).join('') || '<div class="empty">Nothing here</div>';
+    return `<div class="col" data-col="${col.id}"><div class="col-head"><span class="col-name" style="color:${col.tone}">${col.name}</span><span class="col-count">${colTasks.length}</span></div>${cards}</div>`;
+  }).join('');
+
+  // Drop targets — every column accepts cards
+  gridEl.querySelectorAll('.col').forEach(colEl => {
+    colEl.addEventListener('dragover', e => {
+      if (draggedTaskId) { e.preventDefault(); colEl.classList.add('drop-target'); }
+    });
+    colEl.addEventListener('dragleave', () => colEl.classList.remove('drop-target'));
+    colEl.addEventListener('drop', e => {
+      e.preventDefault();
+      colEl.classList.remove('drop-target');
+      if (!draggedTaskId) return;
+      const newCol = colEl.dataset.col;
+      moveTask(draggedTaskId, newCol);
+      draggedTaskId = null;
+    });
+  });
+
+  // Cards draggable
+  gridEl.querySelectorAll('.card').forEach(cardEl => {
+    cardEl.addEventListener('dragstart', e => {
+      draggedTaskId = cardEl.dataset.task;
+      cardEl.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', draggedTaskId); } catch (err) {}
+    });
+    cardEl.addEventListener('dragend', () => {
+      cardEl.classList.remove('dragging');
+      draggedTaskId = null;
+      gridEl.querySelectorAll('.col.drop-target').forEach(c => c.classList.remove('drop-target'));
+    });
+  });
+
+  document.querySelectorAll('.card-id').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      copyText(id);
+      el.classList.add('copied');
+      toast(`Copied ${id}`);
+      setTimeout(() => el.classList.remove('copied'), 1200);
+    });
+  });
+  document.querySelectorAll('[data-toggle]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.toggle;
+      if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+      renderGrid();
+    });
+  });
+  document.querySelectorAll('.check').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation(); e.preventDefault();
+      const id = el.dataset.task;
+      const i = parseInt(el.dataset.i, 10);
+      checks[id] = checks[id] || {};
+      checks[id][i] = !checks[id][i];
+      persistChecks();
+      renderGrid();
+    });
+  });
+  document.querySelectorAll('.act').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.task;
+      const act = el.dataset.act;
+      const task = tasks.find(t => t.id === id);
+      if (task) pingClaude(task, act);
+    });
+  });
+}
+
+function renderQlinks() {
+  const el = document.getElementById('qlinks');
+  el.innerHTML = Object.keys(projects).map(k => {
+    const p = projects[k];
+    const linksHtml = (p.links || []).map(l => `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}">${linkIcons[l.kind] || linkIcons.live}</a>`).join('');
+    const logoInner = p.logoUrl ? `<img src="${p.logoUrl}" alt="${escapeHtml(p.name)}" onerror="this.parentElement.classList.remove('bare');this.parentElement.style.background='${p.color}';this.replaceWith(document.createTextNode('${p.logo}'));">` : p.logo;
+    const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
+    const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
+    return `<div class="qcard"><div class="${logoClass}" style="${logoStyle}">${logoInner}</div><div class="qname">${p.name}</div><div class="qlinks-row">${linksHtml}</div></div>`;
+  }).join('');
+}
+
+function renderColToggles() {
+  const el = document.getElementById('col-toggles');
+  if (!el) return;
+  el.innerHTML = cols.map(c => {
+    const visible = colVisibility[c.id] !== false;
+    const count = tasks.filter(t => effectiveCol(t) === c.id).length;
+    return `<button class="chip col-toggle ${visible ? 'active' : ''}" data-col="${c.id}"><span class="dot" style="background:${c.tone}"></span>${c.name} <span style="opacity:.7">${count}</span></button>`;
+  }).join('');
+  el.querySelectorAll('.col-toggle').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = b.dataset.col;
+      colVisibility[id] = colVisibility[id] === false ? true : false;
+      persistColVisibility();
+      renderColToggles();
+      renderGrid();
+    });
+  });
+}
+document.getElementById('reset-all').addEventListener('click', () => {
+  if (!confirm('Clear all locally-saved column overrides? Cards will return to their source state.')) return;
+  colOverride = {}; shippedOverride = {}; startedOverride = {};
+  persistOverrides(); renderSummary(); renderGrid();
+  toast('↩ Cleared all local overrides');
+});
+
+let _resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(_resizeTimer); _resizeTimer = setTimeout(renderGrid, 150); });
+
+setInterval(() => {
+  document.querySelectorAll('.timer.live').forEach(el => {
+    const card = el.closest('.card');
+    if (!card) return;
+    const id = card.dataset.task;
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    const startedAt = effectiveStarted(task);
+    if (!startedAt) return;
+    const elapsed = Date.now() - new Date(startedAt).getTime();
+    const pulse = el.querySelector('.pulse');
+    el.innerHTML = (pulse ? '<span class="pulse"></span>' : '') + formatElapsed(elapsed);
+  });
+}, 30000);
+
+// Pull cloud overrides first (if Supabase configured), then render.
+async function bootRender() {
+  if (sbConfigured) {
+    try { await sbPullOverrides(); } catch(e) {}
+  }
+  renderSummary();
+  renderQlinks();
+  renderFilters();
+  renderColToggles();
+  renderGrid();
+}
+bootRender();
+
+// Lightweight 30s pull for cross-device updates while the tab is open.
+if (sbConfigured) {
+  setInterval(async () => {
+    const before = JSON.stringify([colOverride, shippedOverride, startedOverride]);
+    await sbPullOverrides();
+    const after = JSON.stringify([colOverride, shippedOverride, startedOverride]);
+    if (before !== after) { renderSummary(); renderGrid(); }
+  }, 30000);
+}
+</script>
+</body>
+</html>
