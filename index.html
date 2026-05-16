@@ -90,6 +90,17 @@ body {
 .timer.shipped { background: rgba(93,202,165,0.08); border-color: rgba(93,202,165,0.25); color: #5DCAA5; }
 @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 .qlinks-wrap { margin-bottom: 18px; }
+.projects-btn { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 500; letter-spacing: 0.3px; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 4px 14px rgba(79,70,229,0.25); }
+.projects-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79,70,229,0.35); }
+.projects-modal { position: fixed; inset: 0; background: rgba(7,7,9,0.72); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.projects-modal-panel { background: #131317; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 22px 22px; max-width: 900px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.18); }
+.projects-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.projects-modal-title { font-size: 14px; color: #c7c7cc; text-transform: uppercase; letter-spacing: 0.4px; }
+.projects-modal-close { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #d4d4d8; width: 28px; height: 28px; border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
+.projects-modal-close:hover { background: rgba(255,255,255,0.06); border-color: rgba(99,102,241,0.5); }
+.projects-modal .qlinks { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; overflow-x: visible; }
+.projects-modal .qcard { cursor: pointer; }
+.projects-modal .qcard.active { outline: 2px solid #6366f1; outline-offset: 2px; }
 .qlinks-h { font-size: 11px; color: #8a8a85; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .qlinks { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; -webkit-overflow-scrolling: touch; }
 .qlinks::-webkit-scrollbar { height: 6px; }
@@ -167,8 +178,16 @@ body {
   </div>
   <div class="summary" id="summary"></div>
   <div class="qlinks-wrap">
-    <div class="qlinks-h">Quick links</div>
-    <div class="qlinks" id="qlinks"></div>
+    <button id="projects-toggle" class="projects-btn">Projects <span id="projects-count" style="opacity:.7"></span></button>
+  </div>
+  <div id="projects-modal" class="projects-modal" style="display:none;">
+    <div class="projects-modal-panel">
+      <div class="projects-modal-head">
+        <div class="projects-modal-title">Projects</div>
+        <button id="projects-modal-close" class="projects-modal-close" aria-label="Close">×</button>
+      </div>
+      <div class="qlinks" id="qlinks"></div>
+    </div>
   </div>
   <div class="banner">
     <span class="banner-dot"></span>
@@ -209,6 +228,8 @@ const projects = {
     links: [ { kind: 'github', url: 'https://github.com/OppositeX/licenser', label: 'GitHub' }, { kind: 'live', url: 'http://licenser.d3v.co.il/wp-admin/', label: 'WP admin' } ] },
   songbyrd: { name: 'Songbyrd', logo: 'S', logoUrl: 'logos/songbyrd.webp', color: '#E8003F', bg: '#5C0019', text: '#F8B5C8',
     links: [ { kind: 'vercel', url: 'https://songbyrd-rho.vercel.app', label: 'Dashboard' }, { kind: 'render', url: 'https://songbyrd-engine.onrender.com', label: 'Engine' }, { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd', label: 'Dashboard repo' }, { kind: 'github', url: 'https://github.com/OppositeX/Songbyrd-Engine', label: 'Engine repo' } ] },
+  linkshop: { name: 'LinkShop', logo: 'L', color: '#a5b4fc', bg: '#3730a3', text: '#e0e7ff',
+    links: [ { kind: 'github', url: 'https://github.com/OppositeX/linkshop-catalog-spine', label: 'GitHub' }, { kind: 'live', url: 'https://linkshop.co.il', label: 'Live' } ] },
   cnvs:     { name: 'CNVS Studio', logo: 'C', logoUrl: 'logos/cnvs.webp', color: '#534AB7', bg: '#26215C', text: '#CECBF6',
     links: [ { kind: 'github', url: 'https://github.com/GLOO-ooo/CNVS-Studio-v2', label: 'GitHub' }, { kind: 'live', url: 'https://cnvs.studio', label: 'Live demo' }, { kind: 'live', url: 'http://cnvs.gloo.local/wp-admin/', label: 'Local mirror admin' } ] }
 };
@@ -376,6 +397,11 @@ const tasks = [
   { id: 'CNV-202', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: 'Map prop conditional visibility (3.0.57)', s: 'New __hasValue__ / __noValue__ sentinels in cnvs-controls applyConditions. Sub-controls now hide when parent map empty: bump_scale ← bump_map, normal_scale_x/y ← normal_map, displacement_scale/bias ← displacement_map, ao_map_intensity ← ao_map. Conditions re-evaluate on media set + media remove.' },
   { id: 'CNV-203', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: '3D model 404 fetch check (3.0.57)', s: 'GLTFLoader now HEAD-probes the URL before loading. 404 / network failure → skip the loader entirely with a clear console line + a CNVSToast surfacing the file name. HEAD-405 servers fall through to a Range-byte-0 GET. Stops the opaque "Failed to load buffer" stack on stale assets like marble_bust_01.gltf.' },
   { id: 'CNV-204', col: 'done', proj: 'cnvs', pri: 'med', startedAt: '2026-05-09T20:30:00Z', shippedAt: '2026-05-09T21:15:00Z', t: 'Settings panel first-open lag (3.0.57)', s: 'Parallelised get_project_states with settings + animation requests. Was serial after both resolved (~600-800ms RTT added on first open). Now all three fire concurrently using instance_id as project_id (matches in 99% of cases). Pre-warm + cache layer from earlier still applies.' },
+  { id: 'LCS-100', col: 'done', proj: 'linkshop', pri: 'high', startedAt: '2026-05-16T10:00:00Z', shippedAt: '2026-05-16', t: 'v0.8.34 shipped — full release', s: 'Licenser SDK integrated, license active, 9 languages, magenta-killed, side cart skin, 1500-cap, no-picks fallback, tooltips + credits redemption, 4 upsells + admin pricing page.' },
+  { id: 'LIC-202', col: 'done', proj: 'licenser', pri: 'high', startedAt: '2026-05-16T09:00:00Z', shippedAt: '2026-05-16', t: 'Server fully wired — 2 products / 2 plans / 2 licenses', s: 'LinkShop (LCS) + pbn-hub-child registered. Lifetime + network plans defined. Licenses issued: LCS LCR-WZV2Y-..., pbn-hub-child LCR-7TMZK-.... GitHub webhook + PAT configured.' },
+  { id: 'LIC-203', col: 'done', proj: 'licenser', pri: 'high', startedAt: '2026-05-16T11:00:00Z', shippedAt: '2026-05-16', t: 'GitHub release pipeline live — end-to-end tested', s: 'tag-push → Actions builds zip → release → webhook → Licenser records. Verified on both repos (LinkShop v0.8.34, pbn-hub-child v1.0.14).' },
+  { id: 'HUB-313', col: 'done', proj: 'hub', pri: 'high', startedAt: '2026-05-16T12:00:00Z', shippedAt: '2026-05-16', t: 'pbn-hub-child v1.0.14 published', s: 'Licenser SDK integrated (Gloo\\PbnHubChild namespace), PUC removed.' },
+  { id: 'HUB-314', col: 'wip', proj: 'hub', pri: 'high', startedAt: '2026-05-16T13:00:00Z', t: 'Install pbn-hub-child v1.0.14 + activate license on 108 sites', s: 'First: 2wheel.it (Italy) + activate license LCR-7TMZK-KFMS7-6AGF6-4PVRZ. Then 107 more sites.' },
 ];
 
 const cols = [
@@ -679,15 +705,41 @@ function renderGrid() {
 
 function renderQlinks() {
   const el = document.getElementById('qlinks');
+  const countEl = document.getElementById('projects-count');
+  if (countEl) countEl.textContent = `(${Object.keys(projects).length})`;
   el.innerHTML = Object.keys(projects).map(k => {
     const p = projects[k];
-    const linksHtml = (p.links || []).map(l => `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}">${linkIcons[l.kind] || linkIcons.live}</a>`).join('');
+    const linksHtml = (p.links || []).map(l => `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}" onclick="event.stopPropagation();">${linkIcons[l.kind] || linkIcons.live}</a>`).join('');
     const logoInner = p.logoUrl ? `<img src="${p.logoUrl}" alt="${escapeHtml(p.name)}" onerror="this.parentElement.classList.remove('bare');this.parentElement.style.background='${p.color}';this.replaceWith(document.createTextNode('${p.logo}'));">` : p.logo;
     const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
     const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
-    return `<div class="qcard"><div class="${logoClass}" style="${logoStyle}">${logoInner}</div><div class="qname">${p.name}</div><div class="qlinks-row">${linksHtml}</div></div>`;
+    const activeCls = activeProj === k ? ' active' : '';
+    return `<div class="qcard${activeCls}" data-proj="${k}"><div class="${logoClass}" style="${logoStyle}">${logoInner}</div><div class="qname">${p.name}</div><div class="qlinks-row">${linksHtml}</div></div>`;
   }).join('');
+  el.querySelectorAll('.qcard').forEach(card => {
+    card.addEventListener('click', () => {
+      activeProj = card.dataset.proj;
+      document.getElementById('projects-modal').style.display = 'none';
+      renderFilters();
+      renderGrid();
+      renderQlinks();
+    });
+  });
 }
+
+(function wireProjectsModal() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('projects-toggle');
+    const modal = document.getElementById('projects-modal');
+    const closeBtn = document.getElementById('projects-modal-close');
+    if (!toggle || !modal) return;
+    toggle.addEventListener('click', () => { modal.style.display = 'flex'; });
+    if (closeBtn) closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.style.display = 'none'; });
+  });
+})();
+
 
 function renderColToggles() {
   const el = document.getElementById('col-toggles');
