@@ -550,27 +550,24 @@ function renderSummary() {
     <div class="stat"><span class="stat-label">Active</span><div class="stat-value">${wip}</div></div>
     <div class="stat"><span class="stat-label">On you</span><div class="stat-value">${wait}</div></div>`;
 
-  // Top meta line — auto-updated every render. "Active" = any project with at
-  // least one task NOT in archive/done. "Last updated" = latest shippedAt or
-  // startedAt across all tasks (falls back to today if none).
-  const activeProjects = new Set(
-    tasks.filter(t => {
-      const c = effectiveCol(t);
-      return c !== 'archive' && c !== 'done';
-    }).map(t => t.proj)
-  );
-  let lastTs = 0;
-  tasks.forEach(t => {
-    const ts = Math.max(
-      Date.parse(shippedOverride[t.id] || t.shippedAt || '') || 0,
-      Date.parse(startedOverride[t.id] || t.startedAt || '') || 0
+  // Top meta line — auto-updated every render.
+  try {
+    const activeProjs = new Set(
+      tasks.filter(t => { const c = effectiveCol(t); return c !== 'archive' && c !== 'done'; })
+           .map(t => t.proj)
     );
-    if (ts > lastTs) lastTs = ts;
-  });
-  const lastDate = lastTs ? new Date(lastTs) : new Date();
-  const iso = lastDate.toISOString().slice(0, 10);
-  const meta = document.getElementById('meta-line');
-  if (meta) meta.textContent = `${activeProjects.size} active projects · last updated ${iso}`;
+    let lastTs = 0;
+    tasks.forEach(t => {
+      const a = Date.parse((shippedOverride && shippedOverride[t.id]) || t.shippedAt || '') || 0;
+      const b = Date.parse((startedOverride && startedOverride[t.id]) || t.startedAt || '') || 0;
+      const ts = Math.max(a, b);
+      if (ts > lastTs) lastTs = ts;
+    });
+    const lastDate = lastTs ? new Date(lastTs) : new Date();
+    const iso = lastDate.toISOString().slice(0, 10);
+    const meta = document.getElementById('meta-line');
+    if (meta) meta.textContent = activeProjs.size + ' active projects · last updated ' + iso;
+  } catch (e) { /* never block the rest of the render */ }
 }
 
 function renderFilters() {
@@ -823,4 +820,34 @@ setInterval(() => {
     if (!task) return;
     const startedAt = effectiveStarted(task);
     if (!startedAt) return;
-    const elapsed = Date.now() - new Date(startedAt).
+    const elapsed = Date.now() - new Date(startedAt).getTime();
+    const pulse = el.querySelector('.pulse');
+    el.innerHTML = (pulse ? '<span class="pulse"></span>' : '') + formatElapsed(elapsed);
+  });
+}, 30000);
+
+// Pull cloud overrides first (if Supabase configured), then render.
+async function bootRender() {
+  if (sbConfigured) {
+    try { await sbPullOverrides(); } catch(e) {}
+  }
+  renderSummary();
+  renderQlinks();
+  renderFilters();
+  renderColToggles();
+  renderGrid();
+}
+bootRender();
+
+// Lightweight 30s pull for cross-device updates while the tab is open.
+if (sbConfigured) {
+  setInterval(async () => {
+    const before = JSON.stringify([colOverride, shippedOverride, startedOverride]);
+    await sbPullOverrides();
+    const after = JSON.stringify([colOverride, shippedOverride, startedOverride]);
+    if (before !== after) { renderSummary(); renderGrid(); }
+  }, 30000);
+}
+</script>
+</body>
+</html>
