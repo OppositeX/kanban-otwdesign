@@ -431,7 +431,7 @@ const tasks = [
   { id: 'SBR-202', col: 'done', proj: 'songbyrd', pri: 'high', startedAt: '2026-05-17T17:30:00Z', shippedAt: '2026-05-17T17:50:00Z', t: 'v0.3.2 — middleware 504 hot-fix', s: 'songbyrd-rho.vercel.app/login was returning 504 GATEWAY_TIMEOUT. Root cause: middleware called supabase.auth.getUser() unconditionally with no timeout and empty env. Fix layered: short-circuit public paths, 2.5s Promise.race timeout on getUser, missing env vars treated as logged-out. Login page now renders with email/password + Continue with Google.' },
   { id: 'SBR-203', col: 'wip', proj: 'songbyrd', pri: 'high', startedAt: '2026-05-17T17:55:00Z', t: 'Rotate Songbyrd env to OTW Pro Supabase + verify Google sign-in end-to-end', s: 'Live bundle has no NEXT_PUBLIC_SUPABASE_URL. Need to set env vars on Vercel pointing at the dedicated OTW Pro project (memory says gccmzvycmfqsbgfxioyk.supabase.co was provisioned), enable Google provider in Supabase Auth, then test sign-up + sign-in.', scope: ['Designate the OTW Pro Supabase project for Songbyrd', 'Set NEXT_PUBLIC_SUPABASE_URL on Vercel', 'Set NEXT_PUBLIC_SUPABASE_ANON_KEY on Vercel', 'Set SUPABASE_SERVICE_ROLE_KEY on Vercel', 'Enable Google provider in Supabase Auth', 'Redeploy + verify /login redirects through Google + lands on /voices'] },
 
-  { id: 'VOY-102', col: 'wait', proj: 'voyc', pri: 'high', t: 'Port VOYC dashboard auth from admin_api to Supabase + add Google sign-in', s: 'Currently the dashboard uses its own admin_api on Render with email/password and a ve_admin_token in localStorage. Move to Supabase Auth so VOYC participates in the unified Google-account model. The admin_api needs to accept Supabase JWTs in Authorization: Bearer.', scope: ['Designate OTW Pro Supabase project for VOYC', 'Replace /login with createBrowserClient + signInWithOAuth provider:google', 'Replace ve_admin_token with Supabase session cookies', 'Update admin_api on Render to verify Supabase JWTs', 'Test admin + tenant flows', 'Migrate existing user records into auth.users'] },
+  { id: 'VOY-102', col: 'done', proj: 'voyc', pri: 'high', shippedAt: '2026-05-18T00:00:00Z', t: 'Bootstrap paperclipOTW tenant + Songbyrd voice agent end-to-end', s: 'Lanes 1/2/3 landed: VOYC dashboard on Supabase auth, Songbyrd TTS adapter registered, /clone working. Bootstrap: created tenant e53f5210-e542-44dc-8d3a-83f225418b92, owner user bcf7328a-d260-4509-885a-fced766b6940 (paperclipotw@songbyrd.local), agent 53219d16-6de1-4c8f-81a4-6d2783751cd0 wired to Songbyrd voice 9238962c-2911-4616-b478-dec5a904334e via voice_config JSONB. Synthesis verification BLOCKED — engine returned 500 for both mp3/wav (voice cloned from 2s of silence + engine model_loaded=false); fix = reclone with real audio per onboarding doc. See paperclip-otw-onboarding.md.', scope: ['Tenant created in public.tenants (turin_user_id=paperclipotw)', 'Owner user inserted into auth.users', 'tenant_users link as owner', 'Agent inserted with songbyrd voice_config', 'Onboarding doc with manual next steps', 'Twilio left disconnected (out of scope)'] },
 
   { id: 'CLP-201', col: 'done', proj: 'clpr', pri: 'high', shippedAt: '2026-05-17T21:45:00Z', t: 'Add Google sign-in to CLPR (currently magic-link only)', s: 'Login page has only magic-link via Supabase. Add a Continue with Google button that calls signInWithOAuth({ provider: "google" }). Use the existing Supabase project; enable Google provider in Auth settings.', scope: ['Enable Google provider in CLPRs Supabase project', 'Add Continue with Google button to /login', 'Add Sign up free flow that lands on /studio after first sign-in', 'Test register + login'] },
 
@@ -881,13 +881,4 @@ bootRender();
 
 // Lightweight 30s pull for cross-device updates while the tab is open.
 if (sbConfigured) {
-  setInterval(async () => {
-    const before = JSON.stringify([colOverride, shippedOverride, startedOverride]);
-    await sbPullOverrides();
-    const after = JSON.stringify([colOverride, shippedOverride, startedOverride]);
-    if (before !== after) { renderSummary(); renderGrid(); }
-  }, 30000);
-}
-</script>
-</body>
-</html>
+  setInterval(async () 
