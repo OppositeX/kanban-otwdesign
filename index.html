@@ -881,4 +881,13 @@ bootRender();
 
 // Lightweight 30s pull for cross-device updates while the tab is open.
 if (sbConfigured) {
-  setInterval(async () 
+  setInterval(async () => {
+    const before = JSON.stringify([colOverride, shippedOverride, startedOverride]);
+    await sbPullOverrides();
+    const after = JSON.stringify([colOverride, shippedOverride, startedOverride]);
+    if (before !== after) { renderSummary(); renderGrid(); }
+  }, 30000);
+}
+</script>
+</body>
+</html>
