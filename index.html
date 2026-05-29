@@ -843,44 +843,34 @@ function renderColToggles() {
   });
 }
 document.getElementById('reset-all').addEventListener('click', () => {
-  if (!confirm('Clear all locally-saved column overrides? Cards will return to their source state.')) return;
+  if (!confirm('Clear ALL locally-saved state? Cards return to source, all columns become visible, project filter resets to All.')) return;
+  // Wipe every persisted layer that can make the board look empty
   colOverride = {}; shippedOverride = {}; startedOverride = {};
-  persistOverrides(); renderSummary(); renderGrid();
-  toast('↩ Cleared all local overrides');
+  colVisibility = Object.assign({}, defaultVisibility);
+  activeProj = 'all';
+  try { localStorage.removeItem('kanban_col_visibility'); } catch(e) {}
+  persistOverrides(); persistColVisibility();
+  renderSummary(); renderQlinks(); renderFilters(); renderColToggles(); renderGrid();
+  toast('↩ Cleared all local state');
 });
 
-let _resizeTimer = null;
-window.addEventListener('resize', () => { clearTimeout(_resizeTimer); _resizeTimer = setTimeout(renderGrid, 150); });
-
-setInterval(() => {
-  document.querySelectorAll('.timer.live').forEach(el => {
-    const card = el.closest('.card');
-    if (!card) return;
-    const id = card.dataset.task;
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    const startedAt = effectiveStarted(task);
-    if (!startedAt) return;
-    const elapsed = Date.now() - new Date(startedAt).getTime();
-    const pulse = el.querySelector('.pulse');
-    el.innerHTML = (pulse ? '<span class="pulse"></span>' : '') + formatElapsed(elapsed);
-  });
-}, 30000);
-
-// Pull cloud overrides first (if Supabase configured), then render.
-async function bootRender() {
-  if (sbConfigured) {
-    try { await sbPullOverrides(); } catch(e) {}
-  }
-  renderSummary();
-  renderQlinks();
-  renderFilters();
-  renderColToggles();
-  renderGrid();
-}
-bootRender();
-
-// Lightweight 30s pull for cross-device updates while the tab is open.
-if (sbConfigured) {
-  setInterval(async () => {
-    
+// Safety net — if filters/overrides hide every task on first render, ignore them
+// and render the source-of-truth state. Prevents the "kanban looks empty" bug.
+(function emptyBoardSafetyNet() {
+  const origRender = renderGrid;
+  let triedRescue = false;
+  window.renderGrid = function() {
+    origRender();
+    if (triedRescue) return;
+    const visibleCardCount = document.querySelectorAll('#grid .card').length;
+    if (visibleCardCount === 0 && tasks.length > 0) {
+      triedRescue = true;
+      console.warn('[kanban] board rendered empty despite ' + tasks.length + ' tasks — rescuing by clearing local overrides + visibility + project filter.');
+      colOverride = {}; shippedOverride = {}; startedOverride = {};
+      colVisibility = Object.assign({}, defaultVisibility);
+      activeProj = 'all';
+      try { localStorage.removeItem('kanban_col_visibility'); } catch(e) {}
+      persistOverrides(); persistColVisibility();
+      renderSummary(); renderQlinks(); renderFilters(); renderColToggles();
+      origRender();
+      toast('↩ Auto-rescu
