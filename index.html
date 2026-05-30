@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Project tasks — kanban</title>
 <style>
 :root { color-scheme: dark; }
@@ -472,14 +475,32 @@ const cols = [
   { id: 'done',    name: 'Done',         tone: '#5DCAA5' },
   { id: 'archive', name: 'Archive',      tone: '#888780', hidden: true },
   { id: 'wip',     name: 'In progress',  tone: '#85B7EB' },
+  { id: 'review',  name: 'Review',       tone: '#A78BFA' },
   { id: 'wait',    name: 'Awaiting you', tone: '#EF9F27' },
   { id: 'back',    name: 'Backlog',      tone: '#888780' }
 ];
 
 let activeProj = 'all';
 // Per-column visibility — defaults: archive hidden, others visible
-const defaultVisibility = { done: true, archive: false, wip: true, wait: true, back: true };
+const defaultVisibility = { done: true, archive: false, wip: true, review: true, wait: true, back: true };
+// URL reset handler — visiting kanban-otwdesign.vercel.app/?reset wipes ALL local state
+try {
+  const params = new URLSearchParams(location.search);
+  if (params.has('reset') || params.has('clear')) {
+    localStorage.clear();
+    history.replaceState(null, '', location.pathname);
+  }
+} catch (e) {}
 let colVisibility = Object.assign({}, defaultVisibility, JSON.parse(localStorage.getItem('kanban_col_visibility') || '{}'));
+// HARD GUARD: if every column ended up hidden (saved state corruption or accidental tap-spree),
+// restore defaults so the board is never blank.
+(function () {
+  const visible = Object.keys(colVisibility).filter(k => colVisibility[k] !== false);
+  if (visible.length === 0) {
+    colVisibility = Object.assign({}, defaultVisibility);
+    try { localStorage.removeItem('kanban_col_visibility'); } catch (e) {}
+  }
+})();
 function persistColVisibility() { localStorage.setItem('kanban_col_visibility', JSON.stringify(colVisibility)); }
 const expanded = new Set();
 const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
@@ -855,22 +876,4 @@ document.getElementById('reset-all').addEventListener('click', () => {
 });
 
 // Safety net — if filters/overrides hide every task on first render, ignore them
-// and render the source-of-truth state. Prevents the "kanban looks empty" bug.
-(function emptyBoardSafetyNet() {
-  const origRender = renderGrid;
-  let triedRescue = false;
-  window.renderGrid = function() {
-    origRender();
-    if (triedRescue) return;
-    const visibleCardCount = document.querySelectorAll('#grid .card').length;
-    if (visibleCardCount === 0 && tasks.length > 0) {
-      triedRescue = true;
-      console.warn('[kanban] board rendered empty despite ' + tasks.length + ' tasks — rescuing by clearing local overrides + visibility + project filter.');
-      colOverride = {}; shippedOverride = {}; startedOverride = {};
-      colVisibility = Object.assign({}, defaultVisibility);
-      activeProj = 'all';
-      try { localStorage.removeItem('kanban_col_visibility'); } catch(e) {}
-      persistOverrides(); persistColVisibility();
-      renderSummary(); renderQlinks(); renderFilters(); renderColToggles();
-      origRender();
-      toast('↩ Auto-rescu
+//
