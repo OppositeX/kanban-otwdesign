@@ -249,12 +249,53 @@ const linkIcons = {
 const priorities = { high: { label: 'High', color: '#E24B4A' }, med: { label: 'Med', color: '#EF9F27' }, low: { label: 'Low', color: '#888780' } };
 
 
-// ─── Cloud sync via Supabase (cross-device, survives localStorage clears) ───
+// ─── Cloud sync via Supabase ───
+// Truth lives in cloud `kanban_tasks` table. Embedded `tasks` array below is
+// the offline fallback only. State (col, started_at, shipped_at) is patched
+// directly onto the row. No override layers, no sync collisions, no
+// "tasks disappear when session expires."
 const SUPABASE_URL      = 'https://yxaxmqmkfyhsawbdlloo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YXhtcW1rZnloc2F3YmRsbG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MjQ2OTEsImV4cCI6MjA5NDIwMDY5MX0.lc_FdyLh-sfXDbuhXUm2aEqGdvb8PcxsAjw2Nqhy5gM';
+const TASKS_TABLE = 'kanban_tasks';
+// Legacy KV — kept readable for one cycle, no longer written.
 const KV_TABLE = 'kanban_kv';
 const KV_KEY_COL = 'col_override', KV_KEY_SHIP = 'shipped_override', KV_KEY_START = 'started_override';
 const sbConfigured = SUPABASE_URL && !SUPABASE_URL.includes('YOUR-') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('YOUR_');
+
+async function sbFetchTasks() {
+  if (!sbConfigured) return null;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + TASKS_TABLE + '?select=*&order=updated_at.desc&limit=10000', {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) { console.warn('[kanban] sbFetchTasks HTTP', r.status); return null; }
+    const rows = await r.json();
+    return rows.map(r => ({
+      id: r.id, proj: r.proj, col: r.col || 'back', pri: r.pri, t: r.t, s: r.s || '',
+      scope: Array.isArray(r.scope) ? r.scope : [],
+      startedAt: r.started_at || undefined,
+      shippedAt: r.shipped_at || undefined
+    }));
+  } catch (e) { console.warn('[kanban] sbFetchTasks failed', e); return null; }
+}
+
+async function sbPatchTask(id, patch) {
+  if (!sbConfigured) return false;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + TASKS_TABLE + '?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(patch)
+    });
+    if (!r.ok) console.warn('[kanban] sbPatchTask', id, 'HTTP', r.status);
+    return r.ok;
+  } catch (e) { console.warn('[kanban] sbPatchTask failed', e); return false; }
+}
 
 async function sbGet(key) {
   if (!sbConfigured) return null;
@@ -529,34 +570,41 @@ function copyText(text) {
 function pingClaude(task, action) {
   const now = new Date().toISOString();
   let msg = ''; let mutated = false; let openClaude = false;
+  // Cloud-first mutations — update in-memory task + PATCH the cloud row.
+  const sbApply = (patch) => sbPatchTask(task.id, patch);
   switch (action) {
     case 'done':
-      colOverride[task.id] = 'done';
-      shippedOverride[task.id] = now;
-      if (!effectiveStarted(task)) startedOverride[task.id] = task.startedAt || now;
+      task.col = 'done';
+      task.shippedAt = now;
+      if (!task.startedAt) task.startedAt = now;
+      sbApply({ col: 'done', shipped_at: now, started_at: task.startedAt });
       mutated = true;
       toast(`✓ Marked ${task.id} done`);
       break;
     case 'start':
-      colOverride[task.id] = 'wip';
-      startedOverride[task.id] = now;
-      delete shippedOverride[task.id];
+      task.col = 'wip';
+      task.startedAt = now;
+      task.shippedAt = undefined;
+      sbApply({ col: 'wip', started_at: now, shipped_at: null });
       mutated = true;
       toast(`▶ Started ${task.id}`);
       break;
     case 'block':
-      colOverride[task.id] = 'wait';
-      delete shippedOverride[task.id];
+      task.col = 'wait';
+      task.shippedAt = undefined;
+      sbApply({ col: 'wait', shipped_at: null });
       mutated = true;
       toast(`⚠ Blocked ${task.id}`);
       break;
     case 'archive':
-      colOverride[task.id] = 'archive';
+      task.col = 'archive';
+      sbApply({ col: 'archive' });
       mutated = true;
       toast(`📦 Archived ${task.id}`);
       break;
     case 'backlog':
-      colOverride[task.id] = 'back';
+      task.col = 'back';
+      sbApply({ col: 'back' });
       mutated = true;
       toast(`Moved ${task.id} to backlog`);
       break;
@@ -567,6 +615,8 @@ function pingClaude(task, action) {
       openClaude = true;
       break;
     case 'reset':
+      // Reset local overrides only. The cloud row is the truth — to actually
+      // revert a card, the user picks a column. This just clears stale local layers.
       delete colOverride[task.id];
       delete shippedOverride[task.id];
       delete startedOverride[task.id];
@@ -585,17 +635,25 @@ function moveTask(taskId, newCol) {
   const task = tasks.find(t => t.id === taskId);
   if (!task) return;
   const now = new Date().toISOString();
-  colOverride[taskId] = newCol;
+  // Cloud-first mutation: update the in-memory task AND patch the cloud row.
+  // Drop the override layers — they're legacy.
+  task.col = newCol;
+  const patch = { col: newCol };
   if (newCol === 'done') {
-    shippedOverride[taskId] = now;
-    if (!effectiveStarted(task)) startedOverride[taskId] = task.startedAt || now;
+    task.shippedAt = now;
+    patch.shipped_at = now;
+    if (!task.startedAt) { task.startedAt = now; patch.started_at = now; }
   } else if (newCol === 'wip') {
-    if (!effectiveStarted(task)) startedOverride[taskId] = now;
-    delete shippedOverride[taskId];
+    if (!task.startedAt) { task.startedAt = now; patch.started_at = now; }
+    task.shippedAt = undefined;
+    patch.shipped_at = null;
   } else {
-    delete shippedOverride[taskId];
+    task.shippedAt = undefined;
+    patch.shipped_at = null;
   }
+  delete colOverride[taskId]; delete shippedOverride[taskId]; delete startedOverride[taskId];
   persistOverrides();
+  sbPatchTask(taskId, patch);
   renderSummary();
   renderGrid();
   toast(`Moved ${taskId} to ${cols.find(c => c.id === newCol)?.name || newCol}`);
@@ -875,5 +933,92 @@ document.getElementById('reset-all').addEventListener('click', () => {
   toast('↩ Cleared all local state');
 });
 
-// Safety net — if filters/overrides hide every task on first render, ignore them
-//
+// Safety net — if every column ends up hidden or filter excludes everything,
+// auto-rescue by clearing local state and re-rendering.
+(function emptyBoardSafetyNet() {
+  const origRender = renderGrid;
+  let triedRescue = false;
+  window.renderGrid = function() {
+    origRender();
+    if (triedRescue) return;
+    const visibleCardCount = document.querySelectorAll('#grid .card').length;
+    if (visibleCardCount === 0 && tasks.length > 0) {
+      triedRescue = true;
+      console.warn('[kanban] board rendered empty despite', tasks.length, 'tasks - rescuing.');
+      colOverride = {}; shippedOverride = {}; startedOverride = {};
+      colVisibility = Object.assign({}, defaultVisibility);
+      activeProj = 'all';
+      try { localStorage.removeItem('kanban_col_visibility'); } catch(e) {}
+      persistOverrides(); persistColVisibility();
+      renderSummary(); renderQlinks(); renderFilters(); renderColToggles();
+      origRender();
+      toast('Auto-rescued: cleared stale local state');
+    }
+  };
+})();
+
+let _resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(_resizeTimer); _resizeTimer = setTimeout(renderGrid, 150); });
+
+setInterval(() => {
+  document.querySelectorAll('.timer.live').forEach(el => {
+    const card = el.closest('.card');
+    if (!card) return;
+    const id = card.dataset.task;
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    const startedAt = effectiveStarted(task);
+    if (!startedAt) return;
+    const elapsed = Date.now() - new Date(startedAt).getTime();
+    const pulse = el.querySelector('.pulse');
+    el.innerHTML = (pulse ? '<span class="pulse"></span>' : '') + formatElapsed(elapsed);
+  });
+}, 30000);
+
+async function bootRender() {
+  if (sbConfigured) {
+    try {
+      const cloudTasks = await sbFetchTasks();
+      if (cloudTasks && cloudTasks.length) {
+        tasks.length = 0;
+        for (const t of cloudTasks) tasks.push(t);
+        colOverride = {}; shippedOverride = {}; startedOverride = {};
+        try {
+          localStorage.removeItem('kanban_col_override');
+          localStorage.removeItem('kanban_shipped_override');
+          localStorage.removeItem('kanban_started_override');
+        } catch(e) {}
+        console.log('[kanban] loaded', tasks.length, 'tasks from cloud');
+      }
+    } catch (e) {
+      console.warn('[kanban] cloud boot failed', e);
+    }
+  }
+  renderSummary();
+  renderQlinks();
+  renderFilters();
+  renderColToggles();
+  renderGrid();
+}
+bootRender();
+
+if (sbConfigured) {
+  setInterval(async () => {
+    const cloudTasks = await sbFetchTasks();
+    if (!cloudTasks || !cloudTasks.length) return;
+    const byId = new Map(tasks.map(t => [t.id, t]));
+    let changed = false;
+    for (const ct of cloudTasks) {
+      const local = byId.get(ct.id);
+      if (!local) { tasks.push(ct); changed = true; continue; }
+      if (local.col !== ct.col || local.shippedAt !== ct.shippedAt || local.startedAt !== ct.startedAt || local.t !== ct.t) {
+        Object.assign(local, ct);
+        changed = true;
+      }
+    }
+    if (changed) { renderSummary(); renderGrid(); }
+  }, 30000);
+}
+</script>
+</body>
+</html>
