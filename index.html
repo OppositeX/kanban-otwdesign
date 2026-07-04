@@ -272,6 +272,11 @@ const KV_TABLE = 'kanban_kv';
 const KV_KEY_COL = 'col_override', KV_KEY_SHIP = 'shipped_override', KV_KEY_START = 'started_override';
 const sbConfigured = SUPABASE_URL && !SUPABASE_URL.includes('YOUR-') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('YOUR_');
 
+// Columns an agent is allowed to set. A typo'd/unknown col (or an unregistered
+// project) must never make a card vanish or throw — it falls back to Backlog
+// and a placeholder style instead of erroring out or hiding silently.
+const VALID_COLS = ['back', 'wip', 'review', 'wait', 'done', 'archive'];
+
 async function sbFetchTasks() {
   if (!sbConfigured) return null;
   try {
@@ -281,7 +286,7 @@ async function sbFetchTasks() {
     if (!r.ok) { console.warn('[kanban] sbFetchTasks HTTP', r.status); return null; }
     const rows = await r.json();
     return rows.map(r => ({
-      id: r.id, proj: r.proj, col: r.col || 'back', pri: r.pri, t: r.t, s: r.s || '',
+      id: r.id, proj: r.proj, col: VALID_COLS.includes(r.col) ? r.col : 'back', pri: r.pri, t: r.t, s: r.s || '',
       scope: Array.isArray(r.scope) ? r.scope : [],
       links: Array.isArray(r.links) ? r.links : [],
       note: r.note || '',
@@ -736,6 +741,12 @@ function renderSummary() {
 function renderFilters() {
   const counts = {};
   tasks.forEach(t => { counts[t.proj] = (counts[t.proj] || 0) + 1; });
+  // Tasks can arrive for a proj key that hasn't been registered in
+  // kanban_projects yet (agent created a card before/without a registry row).
+  // Give it a placeholder chip instead of letting it hide with no way to filter to it.
+  Object.keys(counts).forEach(k => {
+    if (!projects[k]) projects[k] = { name: k, color: '#888780', bg: '#26262c', text: '#e8e8e6' };
+  });
   let html = `<button class="chip ${activeProj === 'all' ? 'active' : ''}" data-proj="all">All <span style="opacity:.7">${tasks.length}</span></button>`;
   Object.keys(projects).forEach(k => {
     const p = projects[k];
