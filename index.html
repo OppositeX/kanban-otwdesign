@@ -63,6 +63,12 @@ body {
 .card-id.copied { color: #5DCAA5; border-color: rgba(93,202,165,0.4); }
 .card-title { font-size: 13px; font-weight: 500; line-height: 1.35; margin: 0 0 4px; color: #efefed; cursor: pointer; }
 .card-sub { font-size: 12px; color: #9c9c97; line-height: 1.4; margin: 0; cursor: pointer; }
+.card-note { font-size: 11px; color: #EF9F27; margin: 6px 0 0; padding-left: 8px; border-left: 2px solid rgba(239,159,39,0.4); line-height: 1.4; }
+.tlinks { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.tlink { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #131316; border: 0.5px solid rgba(255,255,255,0.1); color: #9c9c97; text-decoration: none; transition: color 0.1s, border-color 0.1s; }
+.tlink:hover { color: #f0f0ee; border-color: rgba(255,255,255,0.25); }
+.tlink svg { width: 10px; height: 10px; flex: none; }
+.card-by { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 9px; color: #6f6f6a; margin-left: 8px; background: #0f0f12; border: 0.5px solid rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 999px; }
 .card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #6f6f6a; flex-wrap: wrap; gap: 6px; }
 .pri { display: inline-flex; align-items: center; gap: 5px; }
 .pri-dot { width: 6px; height: 6px; border-radius: 50%; }
@@ -277,10 +283,43 @@ async function sbFetchTasks() {
     return rows.map(r => ({
       id: r.id, proj: r.proj, col: r.col || 'back', pri: r.pri, t: r.t, s: r.s || '',
       scope: Array.isArray(r.scope) ? r.scope : [],
+      links: Array.isArray(r.links) ? r.links : [],
+      note: r.note || '',
+      updatedBy: r.updated_by || '',
+      updatedAt: r.updated_at || '',
       startedAt: r.started_at || undefined,
       shippedAt: r.shipped_at || undefined
     }));
   } catch (e) { console.warn('[kanban] sbFetchTasks failed', e); return null; }
+}
+
+// Cloud project registry — kanban_projects table. Agents keep name/links
+// (GitHub, preview, live URLs) fresh there; the hardcoded `projects` map
+// below stays as offline fallback + styling defaults.
+async function sbFetchProjects() {
+  if (!sbConfigured) return null;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/kanban_projects?select=*&order=sort.asc', {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) { console.warn('[kanban] sbFetchProjects HTTP', r.status); return null; }
+    const rows = await r.json();
+    return rows.length ? rows : null;
+  } catch (e) { console.warn('[kanban] sbFetchProjects failed', e); return null; }
+}
+function mergeCloudProjects(rows) {
+  for (const r of rows) {
+    const base = projects[r.key] || {};
+    projects[r.key] = Object.assign({}, base, {
+      name: r.name || base.name || r.key,
+      logo: r.logo || base.logo || (r.name || r.key).slice(0, 1).toUpperCase(),
+      logoUrl: r.logo_url || base.logoUrl,
+      color: r.color || base.color || '#888780',
+      bg: r.bg || base.bg || '#26262c',
+      text: r.text_color || base.text || '#e8e8e6',
+      links: Array.isArray(r.links) && r.links.length ? r.links : (base.links || [])
+    });
+  }
 }
 
 async function sbPatchTask(id, patch) {
@@ -747,8 +786,9 @@ function scopeProgress(task) {
 }
 
 function renderCard(t) {
-  const p = projects[t.proj];
-  const pri = priorities[t.pri];
+  // Unknown proj key (e.g. agent-created before the registry row exists) must not crash the board.
+  const p = projects[t.proj] || { name: t.proj || '?', color: '#888780', bg: '#26262c', text: '#e8e8e6' };
+  const pri = priorities[t.pri] || priorities.med;
   const isExpanded = expanded.has(t.id);
   const overridden = isOverridden(t);
   const prog = scopeProgress(t);
@@ -765,6 +805,11 @@ function renderCard(t) {
   }
   const timerHtml = renderTimer(t);
   const resetBtn = overridden ? `<button class="act reset" data-act="reset" data-task="${t.id}" title="Reset — clear local override">↩</button>` : '';
+  const noteHtml = t.note ? `<p class="card-note">✏ ${escapeHtml(t.note)}</p>` : '';
+  const tlinksHtml = (t.links && t.links.length)
+    ? `<div class="tlinks">${t.links.map(l => `<a class="tlink" href="${escapeHtml(l.url)}" target="_blank" rel="noopener" title="${escapeHtml(l.label || l.kind || 'link')}" onclick="event.stopPropagation();">${linkIcons[l.kind] || linkIcons.live}<span>${escapeHtml(l.label || l.kind || 'link')}</span></a>`).join('')}</div>`
+    : '';
+  const byHtml = t.updatedBy ? `<span class="card-by" title="Last updated by ${escapeHtml(t.updatedBy)}${t.updatedAt ? ' · ' + escapeHtml(String(t.updatedAt).slice(0, 16).replace('T', ' ')) : ''}">${escapeHtml(t.updatedBy)}</span>` : '';
   return `<div class="card ${isExpanded ? 'expanded' : ''} ${overridden ? 'overridden' : ''}" data-task="${t.id}" draggable="true">
     <div class="card-top">
       <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
@@ -772,9 +817,11 @@ function renderCard(t) {
     </div>
     <p class="card-title" data-toggle="${t.id}">${escapeHtml(t.t)}${progStr}</p>
     <p class="card-sub" data-toggle="${t.id}">${escapeHtml(t.s)}</p>
+    ${noteHtml}
+    ${tlinksHtml}
     ${scopeHtml}
     <div class="card-foot">
-      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
+      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}${byHtml}</span>
       <div class="actions">
         <button class="act done" data-act="done" data-task="${t.id}" title="Mark done locally + ping Claude">✓</button>
         <button class="act start" data-act="start" data-task="${t.id}" title="Start now + ping Claude">▶</button>
@@ -982,7 +1029,8 @@ setInterval(() => {
 async function bootRender() {
   if (sbConfigured) {
     try {
-      const cloudTasks = await sbFetchTasks();
+      const [cloudTasks, cloudProjects] = await Promise.all([sbFetchTasks(), sbFetchProjects()]);
+      if (cloudProjects) mergeCloudProjects(cloudProjects);
       if (cloudTasks && cloudTasks.length) {
         tasks.length = 0;
         for (const t of cloudTasks) tasks.push(t);
@@ -1007,17 +1055,31 @@ async function bootRender() {
 bootRender();
 
 if (sbConfigured) {
+  let _projSnapshot = '';
   setInterval(async () => {
-    const cloudTasks = await sbFetchTasks();
-    if (!cloudTasks || !cloudTasks.length) return;
-    const byId = new Map(tasks.map(t => [t.id, t]));
+    const [cloudTasks, cloudProjects] = await Promise.all([sbFetchTasks(), sbFetchProjects()]);
     let changed = false;
-    for (const ct of cloudTasks) {
-      const local = byId.get(ct.id);
-      if (!local) { tasks.push(ct); changed = true; continue; }
-      if (local.col !== ct.col || local.shippedAt !== ct.shippedAt || local.startedAt !== ct.startedAt || local.t !== ct.t) {
-        Object.assign(local, ct);
+    if (cloudProjects) {
+      const snap = JSON.stringify(cloudProjects);
+      if (snap !== _projSnapshot) {
+        _projSnapshot = snap;
+        mergeCloudProjects(cloudProjects);
+        renderQlinks();
+        renderFilters();
         changed = true;
+      }
+    }
+    if (cloudTasks && cloudTasks.length) {
+      const byId = new Map(tasks.map(t => [t.id, t]));
+      for (const ct of cloudTasks) {
+        const local = byId.get(ct.id);
+        if (!local) { tasks.push(ct); changed = true; continue; }
+        // updated_at bumps on every cloud write (agent or board), so it
+        // catches note/links/scope edits too — not just column moves.
+        if (local.updatedAt !== ct.updatedAt || local.col !== ct.col || local.shippedAt !== ct.shippedAt || local.startedAt !== ct.startedAt || local.t !== ct.t) {
+          Object.assign(local, ct);
+          changed = true;
+        }
       }
     }
     if (changed) { renderSummary(); renderGrid(); }
