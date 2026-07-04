@@ -283,6 +283,31 @@ async function sbFetchTasks() {
   } catch (e) { console.warn('[kanban] sbFetchTasks failed', e); return null; }
 }
 
+// Projects self-registered by agents (AGENTS.md protocol) live in
+// `kanban_projects`. Cloud rows are merged over the embedded map above, so
+// new projects appear without a frontend deploy; embedded entries remain the
+// offline fallback.
+async function sbFetchProjects() {
+  if (!sbConfigured) return;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/kanban_projects?select=*&order=sort.asc', {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) { console.warn('[kanban] sbFetchProjects HTTP', r.status); return; }
+    const rows = await r.json();
+    for (const row of rows) {
+      if (!row.key) continue;
+      const mapped = {
+        name: row.name, logo: row.logo, logoUrl: row.logo_url,
+        color: row.color, bg: row.bg, text: row.text_color, links: row.links
+      };
+      Object.keys(mapped).forEach(k => (mapped[k] === null || mapped[k] === undefined) && delete mapped[k]);
+      projects[row.key] = Object.assign({}, projects[row.key], mapped);
+    }
+    console.log('[kanban] merged', rows.length, 'projects from cloud');
+  } catch (e) { console.warn('[kanban] sbFetchProjects failed', e); }
+}
+
 async function sbPatchTask(id, patch) {
   if (!sbConfigured) return false;
   try {
@@ -747,7 +772,7 @@ function scopeProgress(task) {
 }
 
 function renderCard(t) {
-  const p = projects[t.proj];
+  const p = projects[t.proj] || { name: t.proj, logo: '?', color: '#888780', bg: '#2a2a2e', text: '#e8e8e6', links: [] };
   const pri = priorities[t.pri];
   const isExpanded = expanded.has(t.id);
   const overridden = isOverridden(t);
@@ -982,7 +1007,7 @@ setInterval(() => {
 async function bootRender() {
   if (sbConfigured) {
     try {
-      const cloudTasks = await sbFetchTasks();
+      const [cloudTasks] = await Promise.all([sbFetchTasks(), sbFetchProjects()]);
       if (cloudTasks && cloudTasks.length) {
         tasks.length = 0;
         for (const t of cloudTasks) tasks.push(t);
