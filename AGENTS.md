@@ -38,6 +38,10 @@ Each agent is scoped to one `proj` key (or a small group). **Never touch rows wh
 | `wphq`     | WPHQ             | `WPH`  |
 | `gloosb`   | Gloo SiteBuilder | `GSB`  |
 | `cnvs4`    | CNVS 4 (SDK)     | `CN4`  |
+| `chopgui`  | Chop GUI         | `CHP`  |
+| `typa`     | Typa             | `TYP`  |
+
+Not on this list? Check the live registry — `curl -s "${AUTH[@]}" "$KANBAN_URL/kanban_projects?select=key,name,prefix,links"` — and match your repo's GitHub URL against `links`. Still nothing? See "Onboarding a brand-new project" below.
 
 ## Task schema (`kanban_tasks`)
 
@@ -150,6 +154,57 @@ curl -s -X PATCH "${AUTH[@]}" -H "Content-Type: application/json" \
 
 Task `links` = ephemeral, task-specific (PRs, preview deploys). Project `links` = durable (repos, production URLs).
 
+Only put a **stable alias** in `links` — e.g. `<project>-otwdesign.vercel.app` — never a
+per-deployment hash URL (the kind with a random string in it, like `myproj-a9x8417v4-otwdesign.vercel.app`).
+Those rotate on every deploy and go stale immediately.
+
+### 7. The handoff manual (`kanban_projects.handoff`) — how sessions survive restarts
+
+Sessions get interrupted, bugged out, or hit context limits. When that happens, Omri needs
+to be able to start a **fresh agent session** and have it pick up exactly where the last one
+left off — without you being there to explain it. The handoff manual is what makes that
+possible, and the board has a button for it: open **Projects** on the board, find your
+project's card, click **"📋 Copy resume prompt"**. That copies a complete, ready-to-paste
+prompt — the sync protocol + your project's links, wrapped around whatever you wrote in
+`handoff` — for Omri to hand to a brand-new agent instantly. No manual assembly, no
+digging through old chat logs.
+
+**Your job:** keep `handoff` genuinely useful. Update it:
+- before you end a session (always — assume you might not come back)
+- right after any big decision, architecture change, or discovery a cold start would need
+- the moment you get blocked in a way that isn't obvious from the task card alone
+
+Keep it short — this is "what would I need to know to pick this up cold right now," not a
+changelog (that's what `kanban_tasks.s` and git history are for). Good handoffs cover:
+- current state in one or two sentences
+- key decisions made and *why* (so nobody re-litigates or reverses them by accident)
+- gotchas / traps a fresh agent would otherwise rediscover the hard way
+- where credentials/config/env vars live — **never the secrets themselves**
+- the exact next step
+
+It's a full-text replace (like `links`), not an append — read what's there if you want to
+build on it, otherwise just overwrite:
+
+```bash
+curl -s -X PATCH "${AUTH[@]}" -H "Content-Type: application/json" \
+  "$KANBAN_URL/kanban_projects?key=eq.voyc" \
+  -d '{"handoff":"Supabase JWT migration in progress. Middleware swapped, 13 tests green. Render env var ENABLE_SUPABASE_AUTH still needs to flip to true before the legacy path can be removed — that decision is Omri'"'"'s call, not mine. See VOY-101 for the full trail.","handoff_updated_by":"agent-voyc"}'
+```
+
+### Onboarding a brand-new project
+
+If your project genuinely isn't registered yet:
+
+```bash
+# 1. pick a key (short lowercase slug) and a prefix that doesn't collide with the table above
+curl -s -X POST "${AUTH[@]}" -H "Content-Type: application/json" -H "Prefer: return=minimal" \
+  "$KANBAN_URL/kanban_projects" \
+  -d '{"key":"myproj","name":"My Project","prefix":"MYP","links":[{"kind":"github","url":"https://github.com/OppositeX/my-project","label":"GitHub"}]}'
+```
+Only `key` and `name` are required — everything else (`color`, `bg`, `logo`, `handoff`) can
+be filled in later. Then use `myproj`/`MYP` as your scope everywhere above. This can never
+break the board — an unregistered or newly-registered project renders safely either way.
+
 ## Hard rules
 
 1. **Only your `proj`.** Read anything, write only your own rows.
@@ -160,6 +215,7 @@ Task `links` = ephemeral, task-specific (PRs, preview deploys). Project `links` 
 6. **`wait` cards must say what they're waiting for** in `note`.
 7. Timestamps are UTC ISO-8601 (`date -u +%Y-%m-%dT%H:%M:%SZ`).
 8. If a PATCH/POST fails, retry once; if it still fails, say so in your reply to Omri instead of silently dropping the update.
+9. **Update your project's `handoff` before ending a session.** It's the difference between Omri pasting one prompt into a fresh agent and Omri re-explaining everything from scratch.
 
 ## Copy-paste block for each project repo's CLAUDE.md
 

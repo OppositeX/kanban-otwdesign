@@ -124,6 +124,10 @@ body {
 .qlogo.bare img { padding: 0; }
 .qname { font-size: 12px; font-weight: 500; color: #efefed; margin-bottom: 8px; line-height: 1.2; }
 .qlinks-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.handoff-badge { font-size: 9px; color: #6f6f6a; margin-top: 8px; display: inline-block; }
+.handoff-badge.has { color: #5DCAA5; }
+.resume-btn { margin-top: 8px; width: 100%; font-size: 11px; padding: 6px 8px; border-radius: 6px; border: 0.5px solid rgba(99,102,241,0.4); background: rgba(99,102,241,0.12); color: #c7c7fa; cursor: pointer; font-family: inherit; transition: background 0.1s, border-color 0.1s; }
+.resume-btn:hover { background: rgba(99,102,241,0.22); border-color: rgba(99,102,241,0.6); }
 .qlink { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; background: #1f1f24; border: 0.5px solid rgba(255,255,255,0.08); color: #b5b5b0; text-decoration: none; transition: background 0.1s, color 0.1s, border-color 0.1s; }
 .qlink:hover { background: #2a2a30; color: #f0f0ee; border-color: rgba(255,255,255,0.22); }
 .qlink svg { width: 14px; height: 14px; }
@@ -322,9 +326,71 @@ function mergeCloudProjects(rows) {
       color: r.color || base.color || '#888780',
       bg: r.bg || base.bg || '#26262c',
       text: r.text_color || base.text || '#e8e8e6',
-      links: Array.isArray(r.links) && r.links.length ? r.links : (base.links || [])
+      links: Array.isArray(r.links) && r.links.length ? r.links : (base.links || []),
+      prefix: r.prefix || base.prefix || '',
+      handoff: r.handoff || '',
+      handoffUpdatedBy: r.handoff_updated_by || '',
+      handoffUpdatedAt: r.updated_at || ''
     });
   }
+}
+
+// Builds the full copy-paste "resume this project" prompt: fixed protocol
+// instructions (this is the part "kanban" itself contributes) wrapped around
+// whatever handoff manual the last agent session left behind. One click on
+// the board replaces manually re-typing/assembling this by hand.
+function generateResumePrompt(key) {
+  const p = projects[key];
+  if (!p) return '';
+  const prefix = p.prefix || '<ASK-OMRI-FOR-PREFIX>';
+  const slug = 'agent-' + key;
+  const linksBlock = (p.links || []).map(l => '  - ' + (l.label || l.kind) + ': ' + l.url).join('\n') || '  (none registered — add some once you find them)';
+  const handoffBlock = (p.handoff && p.handoff.trim())
+    ? p.handoff.trim()
+    : '(No handoff manual written yet for this project. Once you have useful context to leave — architecture, decisions made and why, gotchas, current state — write one using the command under "UPDATE THE HANDOFF" below, before you stop or hand off.)';
+  return [
+    'You are resuming work on ' + p.name + ' after a session restart/interruption. Read the',
+    'handoff manual below first — it is what the previous session left for you — then follow',
+    'the sync protocol to catch up on open tasks before doing anything else.',
+    '',
+    'PROJECT: ' + p.name,
+    'Kanban proj key: ' + key + '   Task ID prefix: ' + prefix + '   Agent slug: ' + slug,
+    'Board: https://kanban-otwdesign.vercel.app',
+    'Full sync protocol: https://github.com/OppositeX/kanban-otwdesign/blob/main/AGENTS.md',
+    '',
+    'KNOWN LINKS:',
+    linksBlock,
+    '',
+    '═══ HANDOFF MANUAL (written by the previous session) ═══',
+    handoffBlock,
+    '═══ END HANDOFF MANUAL ═══',
+    '',
+    'WHAT TO DO NOW:',
+    '',
+    'KANBAN_URL="https://yxaxmqmkfyhsawbdlloo.supabase.co/rest/v1"',
+    'KANBAN_KEY="' + SUPABASE_ANON_KEY + '"',
+    'AUTH=(-H "apikey: $KANBAN_KEY" -H "Authorization: Bearer $KANBAN_KEY")',
+    '',
+    '1. Pull your open cards and reconcile them against the handoff above + actual repo/deploy state:',
+    '   curl -s "${AUTH[@]}" "$KANBAN_URL/kanban_tasks?proj=eq.' + key + '&col=not.in.(done,archive)&select=*&order=col.asc,updated_at.desc"',
+    '',
+    '2. Resume whatever the handoff says was in progress (or pick up the next thing). Claim it:',
+    '   curl -s -X PATCH "${AUTH[@]}" -H "Content-Type: application/json" \\',
+    '     "$KANBAN_URL/kanban_tasks?id=eq.' + prefix + '-NNN" \\',
+    '     -d \'{"col":"wip","note":"<what you are doing now>","updated_by":"' + slug + '"}\'',
+    '',
+    '3. Follow the ongoing discipline from AGENTS.md: update the card after every real step,',
+    '   only mark a card "done" once actually verified, use "wait" + a specific note when',
+    '   blocked on Omri, only touch rows where proj="' + key + '".',
+    '',
+    '4. UPDATE THE HANDOFF before you stop or hand off again — this is what makes the next',
+    '   restart painless. Keep it short: current state, key decisions + why, gotchas/traps,',
+    '   where credentials/config live (never the secrets themselves), exactly what to do next.',
+    '   This is a full-text replace, not an append:',
+    '   curl -s -X PATCH "${AUTH[@]}" -H "Content-Type: application/json" \\',
+    '     "$KANBAN_URL/kanban_projects?key=eq.' + key + '" \\',
+    '     -d \'{"handoff":"<updated manual as one string>","handoff_updated_by":"' + slug + '"}\''
+  ].join('\n');
 }
 
 async function sbPatchTask(id, patch) {
@@ -927,6 +993,15 @@ function renderGrid() {
   });
 }
 
+function handoffStatusHtml(p) {
+  if (p.handoff && p.handoff.trim()) {
+    const who = p.handoffUpdatedBy ? escapeHtml(p.handoffUpdatedBy) : 'agent';
+    const when = p.handoffUpdatedAt ? String(p.handoffUpdatedAt).slice(0, 10) : '';
+    return `<span class="handoff-badge has">📄 handoff · ${who}${when ? ' · ' + when : ''}</span>`;
+  }
+  return `<span class="handoff-badge none">📄 no handoff yet</span>`;
+}
+
 function renderQlinks() {
   const el = document.getElementById('qlinks');
   const countEl = document.getElementById('projects-count');
@@ -938,7 +1013,13 @@ function renderQlinks() {
     const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
     const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
     const activeCls = activeProj === k ? ' active' : '';
-    return `<div class="qcard${activeCls}" data-proj="${k}"><div class="${logoClass}" style="${logoStyle}">${logoInner}</div><div class="qname">${p.name}</div><div class="qlinks-row">${linksHtml}</div></div>`;
+    return `<div class="qcard${activeCls}" data-proj="${k}">
+      <div class="${logoClass}" style="${logoStyle}">${logoInner}</div>
+      <div class="qname">${p.name}</div>
+      <div class="qlinks-row">${linksHtml}</div>
+      ${handoffStatusHtml(p)}
+      <button class="resume-btn" data-resume="${k}" title="Copy a ready-to-paste resume prompt for this project" onclick="event.stopPropagation();">📋 Copy resume prompt</button>
+    </div>`;
   }).join('');
   el.querySelectorAll('.qcard').forEach(card => {
     card.addEventListener('click', () => {
@@ -947,6 +1028,13 @@ function renderQlinks() {
       renderFilters();
       renderGrid();
       renderQlinks();
+    });
+  });
+  el.querySelectorAll('.resume-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.resume;
+      copyText(generateResumePrompt(key));
+      toast(`📋 Copied resume prompt for ${projects[key] ? projects[key].name : key}`);
     });
   });
 }
