@@ -208,6 +208,40 @@ img, svg { max-width: 100%; }
 }
 .qlink svg { width: 14px; height: 14px; }
 
+/* ── Project folders — personal organization only, local to this browser ── */
+.new-folder-btn {
+  width: 100%; font-size: 12.5px; font-weight: 500; padding: 9px 10px; min-height: 36px; margin-bottom: var(--sp-1);
+  border-radius: var(--radius-sm); border: 1px dashed rgba(255,255,255,0.18); background: transparent; color: #9c9c97;
+  cursor: pointer; font-family: inherit; transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), background 160ms var(--ease-out);
+}
+.qfolder { margin-bottom: var(--sp-1); }
+.qfolder-head {
+  display: flex; align-items: center; gap: var(--sp-2); padding: 9px var(--sp-2); cursor: pointer; border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.03); transition: background 160ms var(--ease-out);
+}
+.qfolder-chevron { font-size: 10px; color: #8a8a85; transition: transform 200ms var(--ease-out); flex: none; }
+.qfolder-chevron.collapsed { transform: rotate(-90deg); }
+.qfolder-name { font-size: 12.5px; font-weight: 600; color: #d5d5d0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.qfolder-count { font-size: 10px; color: #8a8a85; background: #1f1f24; padding: 1px 7px; border-radius: 999px; flex: none; }
+.qfolder-actions { display: flex; gap: 2px; flex: none; }
+.qfolder-actions button {
+  width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: #6f6f6a; cursor: pointer;
+  font-size: 12px; display: inline-flex; align-items: center; justify-content: center;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+/* .qcard-list is the shared "row of cards" layout — mobile: stacked flex
+   column (set once, generically, below); desktop: switches to a grid via
+   the >=700px block above. Both folder bodies and the unfiled section use
+   it, so cards always look consistent regardless of whether they're grouped. */
+.qcard-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+.qfolder-body { padding: var(--sp-2) 0 0 var(--sp-2); border-left: 2px solid rgba(255,255,255,0.06); margin: 2px 0 0 12px; }
+.qfolder-empty { font-size: 11px; color: #5a5a55; font-style: italic; padding: 4px 2px 8px; }
+.qfolder-label { font-size: 10px; color: #6f6f6a; text-transform: uppercase; letter-spacing: 0.4px; margin: var(--sp-2) 2px 2px; }
+.folder-select {
+  width: 100%; margin-top: 6px; font-size: 11px; padding: 6px 8px; border-radius: var(--radius-sm);
+  border: 0.5px solid rgba(255,255,255,0.1); background: #131316; color: #9c9c97; font-family: inherit; cursor: pointer;
+}
+
 .toast {
   position: fixed; bottom: max(20px, var(--edge)); left: 12px; right: 12px; margin: 0 auto; max-width: 380px;
   background: #1c1c20; border: 0.5px solid rgba(255,255,255,0.18); border-radius: var(--radius-sm);
@@ -243,7 +277,8 @@ img, svg { max-width: 100%; }
   .projects-modal.is-open .projects-modal-panel { transform: scale(1) translateY(0); opacity: 1; }
   .sheet-handle-wrap { display: none; }
   .projects-modal-head { padding: var(--sp-4) var(--sp-5) var(--sp-3); }
-  .qlinks { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--sp-3); padding: 0 var(--sp-5) var(--sp-5); }
+  .qlinks { padding: 0 var(--sp-5) var(--sp-5); }
+  .qcard-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--sp-3); }
   .qcard-top { flex-direction: column; text-align: center; }
   .qname { text-align: center; }
   .qlinks-row { justify-content: center; }
@@ -772,6 +807,49 @@ const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
 function persistChecks() { localStorage.setItem('kanban_checks', JSON.stringify(checks)); }
 let draggedTaskId = null;
 
+// Project folders — purely a personal, local way to organize the Projects
+// sheet. Lives only in this browser's localStorage: no Supabase table, not
+// part of the agent sync protocol, agents never read or write this. Just
+// for Omri to group projects however he wants.
+let projectFolders;
+try {
+  projectFolders = JSON.parse(localStorage.getItem('kanban_folders') || '{"folders":[],"assignment":{}}');
+} catch (e) { projectFolders = { folders: [], assignment: {} }; }
+if (!Array.isArray(projectFolders.folders)) projectFolders.folders = [];
+if (!projectFolders.assignment || typeof projectFolders.assignment !== 'object') projectFolders.assignment = {};
+function persistFolders() { localStorage.setItem('kanban_folders', JSON.stringify(projectFolders)); }
+function createFolder(name) {
+  const id = 'fld_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  projectFolders.folders.push({ id, name, collapsed: false });
+  persistFolders();
+  return id;
+}
+function renameFolder(id, name) {
+  const f = projectFolders.folders.find(f => f.id === id);
+  if (f) { f.name = name; persistFolders(); }
+}
+function deleteFolder(id) {
+  projectFolders.folders = projectFolders.folders.filter(f => f.id !== id);
+  Object.keys(projectFolders.assignment).forEach(k => {
+    if (projectFolders.assignment[k] === id) delete projectFolders.assignment[k];
+  });
+  persistFolders();
+}
+function moveFolder(id, dir) {
+  const idx = projectFolders.folders.findIndex(f => f.id === id);
+  const swapIdx = idx + dir;
+  if (idx < 0 || swapIdx < 0 || swapIdx >= projectFolders.folders.length) return;
+  const tmp = projectFolders.folders[idx];
+  projectFolders.folders[idx] = projectFolders.folders[swapIdx];
+  projectFolders.folders[swapIdx] = tmp;
+  persistFolders();
+}
+function assignProjectToFolder(key, folderId) {
+  if (folderId) projectFolders.assignment[key] = folderId;
+  else delete projectFolders.assignment[key];
+  persistFolders();
+}
+
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1120,29 +1198,75 @@ function handoffStatusHtml(p) {
   return `<span class="handoff-badge none">📄 no handoff yet</span>`;
 }
 
+function folderOptionsHtml(selectedId) {
+  let html = `<option value="">No folder</option>`;
+  projectFolders.folders.forEach(f => {
+    html += `<option value="${f.id}"${f.id === selectedId ? ' selected' : ''}>${escapeHtml(f.name)}</option>`;
+  });
+  html += `<option value="__new__">+ New folder…</option>`;
+  return html;
+}
+
+function qcardHtml(k) {
+  const p = projects[k];
+  const linksHtml = (p.links || []).map(l => `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}" onclick="event.stopPropagation();">${linkIcons[l.kind] || linkIcons.live}</a>`).join('');
+  const logoInner = p.logoUrl ? `<img src="${p.logoUrl}" alt="${escapeHtml(p.name)}" onerror="this.parentElement.classList.remove('bare');this.parentElement.style.background='${p.color}';this.replaceWith(document.createTextNode('${p.logo}'));">` : p.logo;
+  const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
+  const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
+  const activeCls = activeProj === k ? ' active' : '';
+  return `<div class="qcard${activeCls}" data-proj="${k}">
+    <div class="qcard-top">
+      <div class="${logoClass}" style="${logoStyle}">${logoInner}</div>
+      <div class="qinfo">
+        <div class="qname">${escapeHtml(p.name)}</div>
+        ${handoffStatusHtml(p)}
+      </div>
+    </div>
+    <div class="qlinks-row">${linksHtml}</div>
+    <button class="resume-btn" data-resume="${k}" title="Copy a ready-to-paste resume prompt for this project" onclick="event.stopPropagation();">📋 Copy resume prompt</button>
+    <select class="folder-select" data-proj="${k}" title="Move to a folder — just for you, doesn't affect anything else" onclick="event.stopPropagation();">${folderOptionsHtml(projectFolders.assignment[k])}</select>
+  </div>`;
+}
+
 function renderQlinks() {
   const el = document.getElementById('qlinks');
   const countEl = document.getElementById('projects-count');
-  if (countEl) countEl.textContent = `(${Object.keys(projects).length})`;
-  el.innerHTML = Object.keys(projects).map(k => {
-    const p = projects[k];
-    const linksHtml = (p.links || []).map(l => `<a class="qlink" href="${l.url}" target="_blank" rel="noopener" title="${escapeHtml(l.label)}" onclick="event.stopPropagation();">${linkIcons[l.kind] || linkIcons.live}</a>`).join('');
-    const logoInner = p.logoUrl ? `<img src="${p.logoUrl}" alt="${escapeHtml(p.name)}" onerror="this.parentElement.classList.remove('bare');this.parentElement.style.background='${p.color}';this.replaceWith(document.createTextNode('${p.logo}'));">` : p.logo;
-    const logoClass = p.logoUrl ? 'qlogo bare' : 'qlogo';
-    const logoStyle = p.logoUrl ? '' : `background:${p.color}`;
-    const activeCls = activeProj === k ? ' active' : '';
-    return `<div class="qcard${activeCls}" data-proj="${k}">
-      <div class="qcard-top">
-        <div class="${logoClass}" style="${logoStyle}">${logoInner}</div>
-        <div class="qinfo">
-          <div class="qname">${escapeHtml(p.name)}</div>
-          ${handoffStatusHtml(p)}
-        </div>
+  const keys = Object.keys(projects);
+  if (countEl) countEl.textContent = `(${keys.length})`;
+
+  const grouped = {};
+  const unfiled = [];
+  keys.forEach(k => {
+    const fid = projectFolders.assignment[k];
+    const inFolder = fid && projectFolders.folders.some(f => f.id === fid);
+    if (inFolder) { (grouped[fid] = grouped[fid] || []).push(k); } else { unfiled.push(k); }
+  });
+
+  let html = `<button class="new-folder-btn" id="new-folder-btn">+ New folder</button>`;
+  projectFolders.folders.forEach(f => {
+    const members = grouped[f.id] || [];
+    const collapsed = !!f.collapsed;
+    html += `<div class="qfolder">
+      <div class="qfolder-head" data-toggle-folder="${f.id}">
+        <span class="qfolder-chevron${collapsed ? ' collapsed' : ''}">▾</span>
+        <span class="qfolder-name">${escapeHtml(f.name)}</span>
+        <span class="qfolder-count">${members.length}</span>
+        <span class="qfolder-actions">
+          <button data-folder-up="${f.id}" title="Move folder up">↑</button>
+          <button data-folder-down="${f.id}" title="Move folder down">↓</button>
+          <button data-folder-rename="${f.id}" title="Rename folder">✏️</button>
+          <button data-folder-delete="${f.id}" title="Delete folder (projects become unfiled)">🗑</button>
+        </span>
       </div>
-      <div class="qlinks-row">${linksHtml}</div>
-      <button class="resume-btn" data-resume="${k}" title="Copy a ready-to-paste resume prompt for this project" onclick="event.stopPropagation();">📋 Copy resume prompt</button>
+      ${collapsed ? '' : `<div class="qcard-list qfolder-body">${members.length ? members.map(qcardHtml).join('') : '<div class="qfolder-empty">Nothing here yet — pick this folder from a project’s dropdown below.</div>'}</div>`}
     </div>`;
-  }).join('');
+  });
+  if (unfiled.length) {
+    if (projectFolders.folders.length) html += `<div class="qfolder-label">Unfiled</div>`;
+    html += `<div class="qcard-list">${unfiled.map(qcardHtml).join('')}</div>`;
+  }
+  el.innerHTML = html;
+
   el.querySelectorAll('.qcard').forEach(card => {
     card.addEventListener('click', () => {
       activeProj = card.dataset.proj;
@@ -1158,6 +1282,52 @@ function renderQlinks() {
       copyText(generateResumePrompt(key));
       toast(`📋 Copied resume prompt for ${projects[key] ? projects[key].name : key}`);
     });
+  });
+  el.querySelectorAll('.folder-select').forEach(sel => {
+    sel.addEventListener('click', (e) => e.stopPropagation());
+    sel.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const key = sel.dataset.proj;
+      if (sel.value === '__new__') {
+        const name = (prompt('New folder name:', '') || '').trim();
+        if (name) assignProjectToFolder(key, createFolder(name));
+      } else {
+        assignProjectToFolder(key, sel.value || null);
+      }
+      renderQlinks();
+    });
+  });
+  el.querySelectorAll('[data-toggle-folder]').forEach(head => {
+    head.addEventListener('click', () => {
+      const f = projectFolders.folders.find(f => f.id === head.dataset.toggleFolder);
+      if (f) { f.collapsed = !f.collapsed; persistFolders(); renderQlinks(); }
+    });
+  });
+  el.querySelectorAll('[data-folder-up]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation(); moveFolder(btn.dataset.folderUp, -1); renderQlinks();
+  }));
+  el.querySelectorAll('[data-folder-down]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation(); moveFolder(btn.dataset.folderDown, 1); renderQlinks();
+  }));
+  el.querySelectorAll('[data-folder-rename]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const f = projectFolders.folders.find(f => f.id === btn.dataset.folderRename);
+    if (!f) return;
+    const name = (prompt('Rename folder:', f.name) || '').trim();
+    if (name) { renameFolder(f.id, name); renderQlinks(); }
+  }));
+  el.querySelectorAll('[data-folder-delete]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const f = projectFolders.folders.find(f => f.id === btn.dataset.folderDelete);
+    if (!f) return;
+    if (!confirm(`Delete folder "${f.name}"? Its projects become unfiled — nothing else is affected.`)) return;
+    deleteFolder(f.id);
+    renderQlinks();
+  }));
+  const newFolderBtn = document.getElementById('new-folder-btn');
+  if (newFolderBtn) newFolderBtn.addEventListener('click', () => {
+    const name = (prompt('New folder name:', '') || '').trim();
+    if (name) { createFolder(name); renderQlinks(); }
   });
 }
 
