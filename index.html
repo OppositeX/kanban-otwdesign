@@ -85,7 +85,6 @@ img, svg { max-width: 100%; }
   transition: border-color 160ms var(--ease-out), opacity 160ms var(--ease-out), transform 120ms var(--ease-out);
 }
 .card:active { cursor: grabbing; }
-.card.expanded { border-color: rgba(255,255,255,0.18); }
 .card.overridden { border-left: 2px solid rgba(133,183,235,0.5); }
 .card.dragging { opacity: 0.4; transform: scale(0.98); }
 .col.drop-target { background: #1a2030; outline: 1.5px dashed rgba(133,183,235,0.5); outline-offset: -4px; }
@@ -96,9 +95,9 @@ img, svg { max-width: 100%; }
 .card-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.2px; white-space: nowrap; }
 .card-id { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 10px; color: #6f6f6a; background: #0f0f12; padding: 2px 6px; border-radius: 4px; border: 0.5px solid rgba(255,255,255,0.06); cursor: pointer; user-select: all; white-space: nowrap; transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out); }
 .card-id.copied { color: #5DCAA5; border-color: rgba(93,202,165,0.4); }
-.card-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin: 0 0 4px; color: #efefed; cursor: pointer; overflow-wrap: anywhere; }
-.card-sub { font-size: 12px; color: #9c9c97; line-height: 1.45; margin: 0; cursor: pointer; overflow-wrap: anywhere; }
-.card-note { font-size: 11.5px; color: #EF9F27; margin: 7px 0 0; padding-left: 8px; border-left: 2px solid rgba(239,159,39,0.4); line-height: 1.45; overflow-wrap: anywhere; }
+.card-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin: 0; color: #efefed; overflow-wrap: anywhere; }
+.card-note-dot { display: inline-block; color: #EF9F27; font-size: 11px; margin-left: 4px; cursor: help; }
+.card-note { font-size: 11.5px; color: #EF9F27; margin: 0; padding-left: 8px; border-left: 2px solid rgba(239,159,39,0.4); line-height: 1.45; overflow-wrap: anywhere; }
 .tlinks { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
 .tlink { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 3px 9px; border-radius: 999px; background: #131316; border: 0.5px solid rgba(255,255,255,0.1); color: #9c9c97; text-decoration: none; max-width: 100%; transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 120ms var(--ease-out); }
 .tlink span { overflow-wrap: anywhere; }
@@ -127,6 +126,17 @@ img, svg { max-width: 100%; }
 .check.checked .check-text { text-decoration: line-through; color: #6f6f6a; }
 .check-text { flex: 1; overflow-wrap: anywhere; }
 .scope-empty { font-size: 11px; color: #5a5a55; font-style: italic; }
+
+/* ── Task detail sheet — same sheet/dialog system as Projects, just a
+   different body. Cards on the board show title only; this is "everything
+   organized" behind a tap. ── */
+.task-detail-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.task-detail-title { font-size: 17px; font-weight: 700; line-height: 1.35; margin: 0 0 var(--sp-3); color: #efefed; overflow-wrap: anywhere; }
+.task-detail-meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-4); font-size: 11px; color: #6f6f6a; }
+.task-section { margin-bottom: var(--sp-4); }
+.task-detail-summary { font-size: 13.5px; color: #d5d5d0; line-height: 1.55; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-detail-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); padding-top: var(--sp-3); border-top: 0.5px solid rgba(255,255,255,0.07); }
+.task-detail-actions .act { font-size: 12.5px; padding: 8px 14px; }
 .scope-progress { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #8a8a85; margin-left: 6px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .empty { font-size: 12px; color: #5a5a55; text-align: center; padding: 1.5rem 0; font-style: italic; }
 .timer { display: inline-flex; align-items: center; gap: 4px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 0.5px solid rgba(255,255,255,0.06); white-space: nowrap; }
@@ -347,9 +357,19 @@ img, svg { max-width: 100%; }
       <div class="qlinks" id="qlinks"></div>
     </div>
   </div>
+  <div id="task-modal" class="projects-modal" role="dialog" aria-modal="true" aria-label="Task details">
+    <div class="projects-modal-panel">
+      <div class="sheet-handle-wrap" id="task-sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="projects-modal-head">
+        <div class="projects-modal-title" id="task-modal-title-label">Task</div>
+        <button id="task-modal-close" class="projects-modal-close" aria-label="Close">×</button>
+      </div>
+      <div class="qlinks" id="task-detail"></div>
+    </div>
+  </div>
   <div class="banner">
     <span class="banner-dot"></span>
-    Drag cards between columns · Tap a card to expand its checklist · Tap the ID pill to copy · ✓ ▶ ⚠ silently change column · ✏ pings Claude with a note · ↩ resets one card.
+    Drag cards between columns · Tap a card to open its full details · Tap the ID pill to copy · ✓ ▶ ⚠ silently change column · ✏ pings Claude with a note · ↩ resets one card.
   </div>
   <div class="filters" id="filters"></div>
   <div class="col-toggles" id="col-toggles"></div>
@@ -802,7 +822,6 @@ let colVisibility = Object.assign({}, defaultVisibility, JSON.parse(localStorage
   }
 })();
 function persistColVisibility() { localStorage.setItem('kanban_col_visibility', JSON.stringify(colVisibility)); }
-const expanded = new Set();
 const checks = JSON.parse(localStorage.getItem('kanban_checks') || '{}');
 function persistChecks() { localStorage.setItem('kanban_checks', JSON.stringify(checks)); }
 let draggedTaskId = null;
@@ -1062,39 +1081,24 @@ function renderCard(t) {
   // Unknown proj key (e.g. agent-created before the registry row exists) must not crash the board.
   const p = projects[t.proj] || { name: t.proj || '?', color: '#888780', bg: '#26262c', text: '#e8e8e6' };
   const pri = priorities[t.pri] || priorities.med;
-  const isExpanded = expanded.has(t.id);
   const overridden = isOverridden(t);
   const prog = scopeProgress(t);
   const progStr = prog ? `<span class="scope-progress">${prog.done}/${prog.total}</span>` : '';
-  let scopeHtml = '';
-  if (isExpanded) {
-    if (t.scope && t.scope.length) {
-      const taskChecks = checks[t.id] || {};
-      scopeHtml = `<div class="scope"><div class="scope-label">Scope</div>${t.scope.map((item, i) => {
-        const checked = !!taskChecks[i];
-        return `<label class="check ${checked ? 'checked' : ''}" data-task="${t.id}" data-i="${i}"><input type="checkbox" ${checked ? 'checked' : ''}><span class="check-text">${escapeHtml(item)}</span></label>`;
-      }).join('')}</div>`;
-    } else { scopeHtml = `<div class="scope"><div class="scope-empty">No checklist for this task yet.</div></div>`; }
-  }
   const timerHtml = renderTimer(t);
   const resetBtn = overridden ? `<button class="act reset" data-act="reset" data-task="${t.id}" title="Reset — clear local override">↩</button>` : '';
-  const noteHtml = t.note ? `<p class="card-note">✏ ${escapeHtml(t.note)}</p>` : '';
-  const tlinksHtml = (t.links && t.links.length)
-    ? `<div class="tlinks">${t.links.map(l => `<a class="tlink" href="${escapeHtml(l.url)}" target="_blank" rel="noopener" title="${escapeHtml(l.label || l.kind || 'link')}" onclick="event.stopPropagation();">${linkIcons[l.kind] || linkIcons.live}<span>${escapeHtml(l.label || l.kind || 'link')}</span></a>`).join('')}</div>`
-    : '';
-  const byHtml = t.updatedBy ? `<span class="card-by" title="Last updated by ${escapeHtml(t.updatedBy)}${t.updatedAt ? ' · ' + escapeHtml(String(t.updatedAt).slice(0, 16).replace('T', ' ')) : ''}">${escapeHtml(t.updatedBy)}</span>` : '';
-  return `<div class="card ${isExpanded ? 'expanded' : ''} ${overridden ? 'overridden' : ''}" data-task="${t.id}" draggable="true">
+  // Board view is title-only by design — everything else (summary, note,
+  // links, checklist) lives behind a tap, in the task detail sheet. The
+  // note dot is the one exception: a compact signal that something needs
+  // attention, without spilling its text onto the card.
+  const noteDot = t.note ? `<span class="card-note-dot" title="${escapeHtml(t.note)}">✏</span>` : '';
+  return `<div class="card ${overridden ? 'overridden' : ''}" data-task="${t.id}" draggable="true">
     <div class="card-top">
       <span class="card-tag" style="background:${p.bg};color:${p.text}">${p.name}</span>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${timerHtml}<span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span></div>
     </div>
-    <p class="card-title" data-toggle="${t.id}">${escapeHtml(t.t)}${progStr}</p>
-    <p class="card-sub" data-toggle="${t.id}">${escapeHtml(t.s)}</p>
-    ${noteHtml}
-    ${tlinksHtml}
-    ${scopeHtml}
+    <p class="card-title">${escapeHtml(t.t)}${progStr}${noteDot}</p>
     <div class="card-foot">
-      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}${byHtml}</span>
+      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
       <div class="actions">
         <button class="act done" data-act="done" data-task="${t.id}" title="Mark done locally + ping Claude">✓</button>
         <button class="act start" data-act="start" data-task="${t.id}" title="Start now + ping Claude">▶</button>
@@ -1104,6 +1108,91 @@ function renderCard(t) {
       </div>
     </div>
   </div>`;
+}
+
+// The task detail sheet — "everything organized". Opened by tapping a card.
+// Reuses the exact same sheet chrome as the Projects modal (see openSheet/
+// closeSheet below) so it looks and behaves consistently.
+function renderTaskDetail(id) {
+  const t = tasks.find(x => x.id === id);
+  const body = document.getElementById('task-detail');
+  const titleLabel = document.getElementById('task-modal-title-label');
+  if (!t || !body) return;
+  const p = projects[t.proj] || { name: t.proj || '?', color: '#888780', bg: '#26262c', text: '#e8e8e6' };
+  const pri = priorities[t.pri] || priorities.med;
+  const overridden = isOverridden(t);
+  const prog = scopeProgress(t);
+  const progStr = prog ? ` <span class="scope-progress">${prog.done}/${prog.total}</span>` : '';
+  const timerHtml = renderTimer(t);
+  const byHtml = t.updatedBy ? `<span class="card-by" title="Last updated by ${escapeHtml(t.updatedBy)}${t.updatedAt ? ' · ' + escapeHtml(String(t.updatedAt).slice(0, 16).replace('T', ' ')) : ''}">${escapeHtml(t.updatedBy)}</span>` : '';
+  const resetBtn = overridden ? `<button class="act reset" data-act="reset" data-task="${t.id}" title="Reset — clear local override">↩ Reset</button>` : '';
+  const tlinksHtml = (t.links && t.links.length)
+    ? `<div class="tlinks">${t.links.map(l => `<a class="tlink" href="${escapeHtml(l.url)}" target="_blank" rel="noopener" title="${escapeHtml(l.label || l.kind || 'link')}">${linkIcons[l.kind] || linkIcons.live}<span>${escapeHtml(l.label || l.kind || 'link')}</span></a>`).join('')}</div>`
+    : '';
+  let scopeHtml;
+  if (t.scope && t.scope.length) {
+    const taskChecks = checks[t.id] || {};
+    scopeHtml = t.scope.map((item, i) => {
+      const checked = !!taskChecks[i];
+      return `<label class="check ${checked ? 'checked' : ''}" data-task="${t.id}" data-i="${i}"><input type="checkbox" ${checked ? 'checked' : ''}><span class="check-text">${escapeHtml(item)}</span></label>`;
+    }).join('');
+  } else {
+    scopeHtml = `<div class="scope-empty">No checklist for this task yet.</div>`;
+  }
+
+  if (titleLabel) titleLabel.textContent = t.id;
+
+  body.innerHTML = `
+    <div class="task-detail-head">
+      <span class="card-tag" style="background:${p.bg};color:${p.text}">${escapeHtml(p.name)}</span>
+      <span class="card-id" data-id="${t.id}" title="Click to copy">${t.id}</span>
+    </div>
+    <h2 class="task-detail-title">${escapeHtml(t.t)}</h2>
+    <div class="task-detail-meta">
+      <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
+      ${timerHtml}
+      ${byHtml}
+    </div>
+    ${t.s ? `<div class="task-section"><div class="scope-label">Summary</div><p class="task-detail-summary">${escapeHtml(t.s)}</p></div>` : ''}
+    ${t.note ? `<div class="task-section"><div class="scope-label">Note</div><p class="card-note">✏ ${escapeHtml(t.note)}</p></div>` : ''}
+    ${tlinksHtml ? `<div class="task-section"><div class="scope-label">Links</div>${tlinksHtml}</div>` : ''}
+    <div class="task-section">
+      <div class="scope-label">Scope${progStr}</div>
+      ${scopeHtml}
+    </div>
+    <div class="task-detail-actions">
+      <button class="act done" data-act="done" data-task="${t.id}" title="Mark done locally + ping Claude">✓ Done</button>
+      <button class="act start" data-act="start" data-task="${t.id}" title="Start now + ping Claude">▶ Start</button>
+      <button class="act block" data-act="block" data-task="${t.id}" title="Blocked — ping Claude">⚠ Blocked</button>
+      <button class="act note" data-act="note" data-task="${t.id}" title="Note for Claude">✏ Note</button>
+      ${resetBtn}
+    </div>
+  `;
+
+  const idEl = body.querySelector('.card-id');
+  if (idEl) idEl.addEventListener('click', () => {
+    copyText(t.id);
+    idEl.classList.add('copied');
+    toast(`Copied ${t.id}`);
+    setTimeout(() => idEl.classList.remove('copied'), 1200);
+  });
+  body.querySelectorAll('.check').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const i = parseInt(el.dataset.i, 10);
+      checks[id] = checks[id] || {};
+      checks[id][i] = !checks[id][i];
+      persistChecks();
+      renderTaskDetail(id); // refresh the sheet (progress count, strikethrough)
+      renderGrid(); // keep the board's own progress badge in sync
+    });
+  });
+  body.querySelectorAll('.act').forEach(el => {
+    el.addEventListener('click', () => {
+      pingClaude(t, el.dataset.act);
+      closeTaskModal();
+    });
+  });
 }
 
 function renderGrid() {
@@ -1134,7 +1223,9 @@ function renderGrid() {
     });
   });
 
-  // Cards draggable
+  // Cards draggable — and, separately, a whole-card tap opens the detail
+  // sheet. The id pill and action buttons stop propagation so tapping them
+  // doesn't also pop the sheet open.
   gridEl.querySelectorAll('.card').forEach(cardEl => {
     cardEl.addEventListener('dragstart', e => {
       draggedTaskId = cardEl.dataset.task;
@@ -1147,6 +1238,7 @@ function renderGrid() {
       draggedTaskId = null;
       gridEl.querySelectorAll('.col.drop-target').forEach(c => c.classList.remove('drop-target'));
     });
+    cardEl.addEventListener('click', () => openTaskModal(cardEl.dataset.task));
   });
 
   document.querySelectorAll('.card-id').forEach(el => {
@@ -1157,25 +1249,6 @@ function renderGrid() {
       el.classList.add('copied');
       toast(`Copied ${id}`);
       setTimeout(() => el.classList.remove('copied'), 1200);
-    });
-  });
-  document.querySelectorAll('[data-toggle]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = el.dataset.toggle;
-      if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
-      renderGrid();
-    });
-  });
-  document.querySelectorAll('.check').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation(); e.preventDefault();
-      const id = el.dataset.task;
-      const i = parseInt(el.dataset.i, 10);
-      checks[id] = checks[id] || {};
-      checks[id][i] = !checks[id][i];
-      persistChecks();
-      renderGrid();
     });
   });
   document.querySelectorAll('.act').forEach(el => {
@@ -1331,14 +1404,16 @@ function renderQlinks() {
   });
 }
 
-// Projects sheet open/close — bottom sheet on mobile, centered dialog on
+// Generic sheet open/close — bottom sheet on mobile, centered dialog on
 // desktop (CSS handles the layout difference; this just drives the
-// open/close transition + drag-to-dismiss on the handle).
-let _projectsModalOpen = false;
-function openProjectsModal() {
-  const modal = document.getElementById('projects-modal');
-  if (!modal || _projectsModalOpen) return;
-  _projectsModalOpen = true;
+// open/close transition + drag-to-dismiss on the handle). Both the Projects
+// sheet and the task detail sheet share this exact same chrome/behavior;
+// open state is tracked on the element itself (data-open) so any number of
+// sheets can reuse these without stepping on each other.
+function openSheet(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal || modal.dataset.open === '1') return;
+  modal.dataset.open = '1';
   modal.style.display = 'flex';
   // Force a style flush so the browser registers the closed state before we
   // flip to open on the next frame — otherwise the transition is skipped.
@@ -1346,10 +1421,10 @@ function openProjectsModal() {
   requestAnimationFrame(() => modal.classList.add('is-open'));
   document.body.style.overflow = 'hidden';
 }
-function closeProjectsModal() {
-  const modal = document.getElementById('projects-modal');
-  if (!modal || !_projectsModalOpen) return;
-  _projectsModalOpen = false;
+function closeSheet(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal || modal.dataset.open !== '1') return;
+  modal.dataset.open = '0';
   modal.classList.remove('is-open');
   document.body.style.overflow = '';
   const panel = modal.querySelector('.projects-modal-panel');
@@ -1364,30 +1439,45 @@ function closeProjectsModal() {
   panel && panel.addEventListener('transitionend', finish);
   setTimeout(finish, 400); // fallback in case transitionend never fires
 }
+function openProjectsModal() { openSheet('projects-modal'); }
+function closeProjectsModal() { closeSheet('projects-modal'); }
+function openTaskModal(id) { renderTaskDetail(id); openSheet('task-modal'); }
+function closeTaskModal() { closeSheet('task-modal'); }
 
-(function wireProjectsModal() {
+// Wires a sheet's open trigger, close button, backdrop-tap, and Escape.
+// toggleId may be null (the task sheet has no single fixed open button —
+// it's opened per-card from renderGrid instead).
+function wireSheet(modalId, toggleId, closeId) {
   document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('projects-toggle');
-    const modal = document.getElementById('projects-modal');
-    const closeBtn = document.getElementById('projects-modal-close');
-    if (!toggle || !modal) return;
-    toggle.addEventListener('click', openProjectsModal);
-    if (closeBtn) closeBtn.addEventListener('click', closeProjectsModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeProjectsModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeProjectsModal(); });
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    if (toggleId) {
+      const toggle = document.getElementById(toggleId);
+      if (toggle) toggle.addEventListener('click', () => openSheet(modalId));
+    }
+    const closeBtn = closeId && document.getElementById(closeId);
+    if (closeBtn) closeBtn.addEventListener('click', () => closeSheet(modalId));
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeSheet(modalId); });
   });
-})();
+}
+wireSheet('projects-modal', 'projects-toggle', 'projects-modal-close');
+wireSheet('task-modal', null, 'task-modal-close');
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  closeSheet('projects-modal');
+  closeSheet('task-modal');
+});
 
-// Drag-to-dismiss on the sheet handle (mobile bottom-sheet layout only —
+// Drag-to-dismiss on a sheet's handle (mobile bottom-sheet layout only —
 // harmless no-op on desktop since the handle is display:none there).
 // Percentage-of-own-size + momentum dismissal per the Vaul/Sonner pattern:
 // don't require dragging past a fixed pixel threshold, a quick flick should
 // dismiss regardless of distance; dragging past the top damps instead of
 // hard-stopping.
-(function wireSheetDrag() {
+function wireSheetDrag(handleId, modalId) {
   document.addEventListener('DOMContentLoaded', () => {
-    const handle = document.getElementById('sheet-handle-wrap');
-    const modal = document.getElementById('projects-modal');
+    const handle = document.getElementById(handleId);
+    const modal = document.getElementById(modalId);
     if (!handle || !modal) return;
     let dragging = false, startY = 0, startTime = 0, lastDy = 0, pointerId = null;
 
@@ -1419,7 +1509,7 @@ function closeProjectsModal() {
         const h = panel.getBoundingClientRect().height || 400;
         panel.style.transition = `transform 220ms var(--ease-out)`;
         panel.style.transform = `translateY(${h}px)`;
-        _projectsModalOpen = false;
+        modal.dataset.open = '0';
         modal.classList.remove('is-open');
         document.body.style.overflow = '';
         let done = false;
@@ -1441,7 +1531,9 @@ function closeProjectsModal() {
     handle.addEventListener('pointerup', endDrag);
     handle.addEventListener('pointercancel', endDrag);
   });
-})();
+}
+wireSheetDrag('sheet-handle-wrap', 'projects-modal');
+wireSheetDrag('task-sheet-handle-wrap', 'task-modal');
 
 
 function renderColToggles() {
