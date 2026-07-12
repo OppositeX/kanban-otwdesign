@@ -59,6 +59,13 @@ img, svg { max-width: 100%; }
 }
 .title { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.2px; }
 .meta { font-size: 12px; color: #8a8a85; margin-top: 3px; }
+.head-actions { display: flex; gap: var(--sp-2); align-items: center; }
+.icon-btn {
+  width: 36px; height: 36px; flex: none; border-radius: var(--radius-sm); border: 0.5px solid rgba(255,255,255,0.1);
+  background: transparent; color: #8a8a85; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.icon-btn svg { width: 15px; height: 15px; }
 .summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .stat { background: #16161a; border: 0.5px solid rgba(255,255,255,0.08); border-radius: var(--radius-md); padding: var(--sp-2) var(--sp-3); min-width: 0; }
 .stat-label { font-size: 10px; color: #8a8a85; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -272,6 +279,29 @@ img, svg { max-width: 100%; }
   width: 100%; margin-top: 6px; font-size: 11px; padding: 6px 8px; border-radius: var(--radius-sm);
   border: 0.5px solid rgba(255,255,255,0.1); background: #131316; color: #9c9c97; font-family: inherit; cursor: pointer;
 }
+.folder-delete-confirm {
+  height: 26px; padding: 0 10px; border-radius: 6px; border: 0.5px solid rgba(226,75,74,0.5);
+  background: rgba(226,75,74,0.15); color: #E24B4A; cursor: pointer; font-family: inherit; font-size: 10.5px; font-weight: 600;
+  white-space: nowrap;
+}
+.trash-toggle {
+  width: 100%; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #6f6f6a; padding: 8px 10px;
+  margin-top: var(--sp-2); border-radius: var(--radius-sm); border: none; background: transparent; cursor: pointer; font-family: inherit;
+}
+.trash-toggle svg { width: 12px; height: 12px; flex: none; }
+.trash-toggle .qfolder-chevron { margin-left: auto; }
+.trash-list { display: flex; flex-direction: column; gap: 6px; padding: 0 2px; }
+.trash-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.03); font-size: 11.5px;
+}
+.trash-item-name { flex: 1; min-width: 0; color: #b5b5b0; overflow-wrap: anywhere; }
+.trash-item-days { font-size: 10px; color: #6f6f6a; flex: none; white-space: nowrap; }
+.trash-item button {
+  flex: none; font-size: 10.5px; padding: 4px 9px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.1);
+  background: transparent; color: #9c9c97; cursor: pointer; font-family: inherit;
+}
+.trash-item button[data-folder-purge] { color: #E24B4A; border-color: rgba(226,75,74,0.3); }
 
 .toast {
   position: fixed; bottom: max(20px, var(--edge)); left: 12px; right: 12px; margin: 0 auto; max-width: 380px;
@@ -282,6 +312,31 @@ img, svg { max-width: 100%; }
   z-index: 2000; overflow-wrap: anywhere;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
+
+/* Card actions live behind one trigger + a labeled dropdown instead of four
+   bare icon buttons — icon alone wasn't enough to tell what each one did. */
+.act-menu-btn {
+  width: 30px; height: 30px; flex: none; border-radius: var(--radius-sm); border: 0.5px solid rgba(255,255,255,0.1);
+  background: transparent; color: #b5b5b0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.act-menu-btn svg { width: 13px; height: 13px; }
+.action-menu {
+  position: fixed; z-index: 1500; display: none; flex-direction: column; gap: 1px;
+  background: #1c1c20; border: 0.5px solid rgba(255,255,255,0.12); border-radius: var(--radius-md);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.55); padding: 6px; width: 240px;
+  opacity: 0; transform: scale(0.96) translateY(-4px);
+  transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.action-menu.is-open { display: flex; opacity: 1; transform: scale(1) translateY(0); }
+.action-menu-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 8px 9px; border-radius: var(--radius-sm);
+  border: none; background: transparent; color: #e8e8e6; cursor: pointer; text-align: left; font-family: inherit;
+  transition: background 120ms var(--ease-out);
+}
+.action-menu-item svg { width: 14px; height: 14px; flex: none; margin-top: 2px; color: #9c9c97; }
+.ami-label { font-size: 12.5px; font-weight: 600; display: block; }
+.ami-desc { font-size: 11px; color: #8a8a85; display: block; margin-top: 1px; line-height: 1.35; }
 
 /* Projects sheet is full-screen on phones — not a partial drawer. A sheet
    that hugs its content height visibly resizes/"jumps" as folders expand,
@@ -346,19 +401,25 @@ img, svg { max-width: 100%; }
   .act.block:hover { background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.4); color: #E24B4A; }
   .act.note:hover { background: rgba(239,159,39,0.12); border-color: rgba(239,159,39,0.4); color: #EF9F27; }
   .archive-toggle:hover { border-color: rgba(255,255,255,0.22); color: #d5d5d0; background: rgba(255,255,255,0.03); }
+  .icon-btn:hover { border-color: rgba(255,255,255,0.22); color: #d5d5d0; background: rgba(255,255,255,0.03); }
   .projects-btn:hover { box-shadow: 0 6px 18px rgba(79,70,229,0.35); transform: translateY(-1px); }
   .projects-modal-close:hover { background: rgba(255,255,255,0.06); border-color: rgba(99,102,241,0.5); }
   .qcard:hover { border-color: rgba(255,255,255,0.22); }
   .qlink:hover { background: #2a2a30; color: #f0f0ee; border-color: rgba(255,255,255,0.22); }
   .resume-btn:hover { background: rgba(99,102,241,0.22); border-color: rgba(99,102,241,0.6); }
+  .act-menu-btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.22); color: #f0f0ee; }
+  .action-menu-item:hover { background: rgba(255,255,255,0.06); }
+  .trash-toggle:hover { color: #b5b5b0; background: rgba(255,255,255,0.03); }
+  .trash-item button:hover { border-color: rgba(255,255,255,0.25); color: #f0f0ee; }
+  .trash-item button[data-folder-purge]:hover { background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.5); color: #E24B4A; }
 }
 
 /* Press feedback — scale(0.97), never on keyboard/high-frequency actions,
    never movement-based under reduced-motion. */
 @media (prefers-reduced-motion: no-preference) {
-  .chip:active, .act:active, .archive-toggle:active, .qlink:active, .tlink:active,
+  .chip:active, .act:active, .archive-toggle:active, .icon-btn:active, .qlink:active, .tlink:active,
   .resume-btn:active, .qcard:active, .projects-btn:active, .projects-modal-close:active,
-  .card-id:active {
+  .act-menu-btn:active, .card-id:active {
     transform: scale(0.96);
   }
   .card:active { transform: scale(0.99); }
@@ -375,11 +436,25 @@ img, svg { max-width: 100%; }
       <h1 class="title">Project tasks</h1>
       <p class="meta" id="meta-line">…</p>
     </div>
-    <button class="archive-toggle" id="reset-all" title="Clear all locally-saved column overrides">Reset local state</button>
+    <div class="head-actions">
+      <button class="icon-btn" id="stats-toggle" title="View KPIs (total, shipped, active, on you)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13.5h11M4 13.5V8M8 13.5V3.5M12 13.5v-7"/></svg></button>
+      <button class="archive-toggle" id="reset-all" title="Clear all locally-saved column overrides">Reset local state</button>
+    </div>
   </div>
-  <div class="summary" id="summary"></div>
   <div class="qlinks-wrap">
     <button id="projects-toggle" class="projects-btn">Projects <span id="projects-count" style="opacity:.7"></span></button>
+  </div>
+  <div id="stats-modal" class="projects-modal" role="dialog" aria-modal="true" aria-label="KPIs">
+    <div class="projects-modal-panel">
+      <div class="sheet-handle-wrap" id="stats-sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="projects-modal-head">
+        <div class="projects-modal-title">KPIs</div>
+        <button id="stats-modal-close" class="projects-modal-close" aria-label="Close">×</button>
+      </div>
+      <div class="qlinks">
+        <div class="summary" id="summary"></div>
+      </div>
+    </div>
   </div>
   <div id="projects-modal" class="projects-modal sheet-full" role="dialog" aria-modal="true" aria-label="Projects">
     <div class="projects-modal-panel">
@@ -410,6 +485,7 @@ img, svg { max-width: 100%; }
   <div class="grid" id="grid"></div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="action-menu" id="action-menu" role="menu"></div>
 <script>
 const CLAUDE_URL = 'https://claude.ai/new?q=';
 let colOverride     = JSON.parse(localStorage.getItem('kanban_col_override')     || '{}');
@@ -467,8 +543,19 @@ const actionIcons = {
   blocked: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.6 13.6H1.4L8 2.2z"/><path d="M8 6.6v3M8 11.6h.01"/></svg>',
   note:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11.2 2.2l2.6 2.6-8.1 8.1-3.4.8.8-3.4 8.1-8.1z"/></svg>',
   delete:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.7 4.5h10.6M6.2 4.5V3a1 1 0 0 1 1-1h1.6a1 1 0 0 1 1 1v1.5M12.5 4.5l-.6 8.5a1 1 0 0 1-1 .9H5.1a1 1 0 0 1-1-.9l-.6-8.5"/></svg>',
-  copy:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="5.3" y="5.3" width="8" height="8.8" rx="1.1"/><path d="M3 10.5V3.2a1 1 0 0 1 1-1h5.8"/></svg>'
+  copy:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="5.3" y="5.3" width="8" height="8.8" rx="1.1"/><path d="M3 10.5V3.2a1 1 0 0 1 1-1h5.8"/></svg>',
+  menu:    '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="8" cy="12.6" r="1.3"/></svg>'
 };
+
+// Card actions shown in the dropdown — icon + label + a short plain-language
+// description of what each one actually does, since an icon alone (even a
+// clear one) wasn't enough on its own.
+const cardActionDefs = [
+  { act: 'done',  label: 'Mark done',      desc: 'Moves to Done and marks it shipped' },
+  { act: 'start', label: 'Start working',  desc: 'Moves to In progress and starts the timer' },
+  { act: 'block', label: 'Mark blocked',   desc: 'Moves to Awaiting you' },
+  { act: 'note',  label: 'Note for Claude', desc: 'Prompts for a note, opens Claude with it' }
+];
 
 const priorities = { high: { label: 'High', color: '#E24B4A' }, med: { label: 'Med', color: '#EF9F27' }, low: { label: 'Low', color: '#888780' } };
 
@@ -850,13 +937,54 @@ function renameFolder(id, name) {
   const f = projectFolders.folders.find(f => f.id === id);
   if (f) { f.name = name; persistFolders(); }
 }
-function deleteFolder(id) {
+const TRASH_RETENTION_DAYS = 30;
+// Deleting a folder is a two-step click to confirm (see the render code)
+// PLUS a 30-day undo window — never straight to gone. Its project
+// assignments are left untouched while trashed, so restoring brings
+// everything back exactly as it was.
+function trashFolder(id) {
+  const f = projectFolders.folders.find(f => f.id === id);
+  if (f) { f.deletedAt = new Date().toISOString(); persistFolders(); }
+}
+function restoreFolder(id) {
+  const f = projectFolders.folders.find(f => f.id === id);
+  if (f) { delete f.deletedAt; persistFolders(); }
+}
+function purgeFolderForever(id) {
   projectFolders.folders = projectFolders.folders.filter(f => f.id !== id);
   Object.keys(projectFolders.assignment).forEach(k => {
     if (projectFolders.assignment[k] === id) delete projectFolders.assignment[k];
   });
   persistFolders();
 }
+function daysLeftInTrash(f) {
+  const deleted = Date.parse(f.deletedAt || '') || 0;
+  const ageDays = (Date.now() - deleted) / 86400000;
+  return Math.max(0, Math.ceil(TRASH_RETENTION_DAYS - ageDays));
+}
+// Auto-purge anything past the retention window — called once at boot.
+function purgeExpiredFolders() {
+  const before = projectFolders.folders.length;
+  projectFolders.folders.filter(f => f.deletedAt).forEach(f => {
+    if (daysLeftInTrash(f) <= 0) purgeFolderForever(f.id);
+  });
+  if (projectFolders.folders.length !== before) persistFolders();
+}
+purgeExpiredFolders();
+
+// Delete-folder confirmation state — clicking delete once "arms" it (shown
+// as a distinct red "Confirm delete?" state); a second click within the
+// window actually trashes it. Anything else — clicking elsewhere, letting
+// the timer lapse — disarms it with no effect. This lives outside
+// renderQlinks so it survives the full-innerHTML re-render that happens on
+// every interaction.
+let armedDeleteFolderId = null;
+let armedDeleteTimer = null;
+function disarmDelete() {
+  armedDeleteFolderId = null;
+  clearTimeout(armedDeleteTimer);
+}
+let trashExpanded = false;
 function moveFolder(id, dir) {
   const idx = projectFolders.folders.findIndex(f => f.id === id);
   const swapIdx = idx + dir;
@@ -1083,12 +1211,7 @@ function renderCard(t) {
     <p class="card-title">${escapeHtml(t.t)}${progStr}${noteDot}</p>
     <div class="card-foot">
       <span class="pri"><span class="pri-dot" style="background:${pri.color}"></span>${pri.label}</span>
-      <div class="actions">
-        <button class="act done" data-act="done" data-task="${t.id}" title="Mark done locally + ping Claude">${actionIcons.done}</button>
-        <button class="act start" data-act="start" data-task="${t.id}" title="Start now + ping Claude">${actionIcons.start}</button>
-        <button class="act block" data-act="block" data-task="${t.id}" title="Blocked — ping Claude">${actionIcons.blocked}</button>
-        <button class="act note" data-act="note" data-task="${t.id}" title="Note for Claude">${actionIcons.note}</button>
-      </div>
+      <button class="act-menu-btn" data-task="${t.id}" title="Actions" aria-haspopup="true">${actionIcons.menu}</button>
     </div>
   </div>`;
 }
@@ -1221,7 +1344,11 @@ function renderGrid() {
     cardEl.addEventListener('click', () => openTaskModal(cardEl.dataset.task));
   });
 
-  document.querySelectorAll('.card-id').forEach(el => {
+  // Scoped to gridEl, not document — the task detail sheet has its own
+  // .card-id/.act elements with their own listeners (wired in
+  // renderTaskDetail); a global querySelectorAll here would double-attach
+  // listeners to those every time the board re-renders in the background.
+  gridEl.querySelectorAll('.card-id').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = el.dataset.id;
@@ -1231,15 +1358,13 @@ function renderGrid() {
       setTimeout(() => el.classList.remove('copied'), 1200);
     });
   });
-  document.querySelectorAll('.act').forEach(el => {
-    el.addEventListener('click', (e) => {
+  gridEl.querySelectorAll('.act-menu-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const id = el.dataset.task;
-      const act = el.dataset.act;
-      const task = tasks.find(t => t.id === id);
-      if (task) pingClaude(task, act);
+      toggleActionMenu(btn.dataset.task, btn);
     });
   });
+  closeActionMenu(); // stale trigger references from the previous render are gone now
 }
 
 function handoffStatusHtml(p) {
@@ -1307,18 +1432,28 @@ function renderQlinks() {
   const keys = Object.keys(projects);
   if (countEl) countEl.textContent = `(${keys.length})`;
 
+  const activeFolders = projectFolders.folders.filter(f => !f.deletedAt);
+  const trashedFolders = projectFolders.folders.filter(f => f.deletedAt);
+
   const grouped = {};
   const unfiled = [];
   keys.forEach(k => {
     const fid = projectFolders.assignment[k];
-    const inFolder = fid && projectFolders.folders.some(f => f.id === fid);
+    // A project assigned to a folder that's currently in the trash shows as
+    // unfiled until the folder is restored — its assignment is untouched,
+    // so it snaps right back in if you undo the delete.
+    const inFolder = fid && activeFolders.some(f => f.id === fid);
     if (inFolder) { (grouped[fid] = grouped[fid] || []).push(k); } else { unfiled.push(k); }
   });
 
   let html = `<button class="new-folder-btn" id="new-folder-btn">+ New folder</button>`;
-  projectFolders.folders.forEach(f => {
+  activeFolders.forEach(f => {
     const members = grouped[f.id] || [];
     const collapsed = !!f.collapsed;
+    const armed = armedDeleteFolderId === f.id;
+    const deleteBtn = armed
+      ? `<button class="folder-delete-confirm" data-folder-delete="${f.id}" title="Click again to move to Trash">Confirm delete?</button>`
+      : `<button data-folder-delete="${f.id}" title="Delete folder (moves to Trash for ${TRASH_RETENTION_DAYS} days)">${actionIcons.delete}</button>`;
     html += `<div class="qfolder">
       <div class="qfolder-head" data-toggle-folder="${f.id}">
         <span class="qfolder-chevron${collapsed ? ' collapsed' : ''}">▾</span>
@@ -1329,15 +1464,27 @@ function renderQlinks() {
           <button data-folder-up="${f.id}" title="Move folder up">↑</button>
           <button data-folder-down="${f.id}" title="Move folder down">↓</button>
           <button data-folder-rename="${f.id}" title="Rename folder">${actionIcons.note}</button>
-          <button data-folder-delete="${f.id}" title="Delete folder (projects become unfiled)">${actionIcons.delete}</button>
+          ${deleteBtn}
         </span>
       </div>
       ${collapsed ? '' : `<div class="qcard-list qfolder-body">${members.length ? members.map(qcardHtml).join('') : '<div class="qfolder-empty">Nothing here yet — pick this folder from a project’s dropdown below.</div>'}</div>`}
     </div>`;
   });
   if (unfiled.length) {
-    if (projectFolders.folders.length) html += `<div class="qfolder-label">Unfiled</div>`;
+    if (activeFolders.length) html += `<div class="qfolder-label">Unfiled</div>`;
     html += `<div class="qcard-list">${unfiled.map(qcardHtml).join('')}</div>`;
+  }
+  if (trashedFolders.length) {
+    html += `<button class="trash-toggle" id="trash-toggle">${actionIcons.delete} Trash (${trashedFolders.length})<span class="qfolder-chevron${trashExpanded ? '' : ' collapsed'}">▾</span></button>`;
+    if (trashExpanded) {
+      html += `<div class="trash-list">${trashedFolders.map(f => `
+        <div class="trash-item">
+          <span class="trash-item-name">${escapeHtml(f.name)}</span>
+          <span class="trash-item-days">${daysLeftInTrash(f)}d left</span>
+          <button data-folder-restore="${f.id}" title="Restore folder">Restore</button>
+          <button data-folder-purge="${f.id}" title="Delete forever — cannot be undone">Delete forever</button>
+        </div>`).join('')}</div>`;
+    }
   }
   el.innerHTML = html;
 
@@ -1390,14 +1537,48 @@ function renderQlinks() {
     const name = (prompt('Rename folder:', f.name) || '').trim();
     if (name) { renameFolder(f.id, name); renderQlinks(); }
   }));
+  // Delete is a two-click confirm, not a popup: first click arms the button
+  // (it turns into a red "Confirm delete?" for 3s), a second click while
+  // armed actually moves the folder to Trash. One wrong tap can't delete
+  // anything, and even a confirmed delete is recoverable for 30 days.
   el.querySelectorAll('[data-folder-delete]').forEach(btn => btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const f = projectFolders.folders.find(f => f.id === btn.dataset.folderDelete);
+    const id = btn.dataset.folderDelete;
+    const f = projectFolders.folders.find(f => f.id === id);
     if (!f) return;
-    if (!confirm(`Delete folder "${f.name}"? Its projects become unfiled — nothing else is affected.`)) return;
-    deleteFolder(f.id);
+    if (armedDeleteFolderId === id) {
+      disarmDelete();
+      trashFolder(id);
+      toast(`Moved "${f.name}" to Trash — recoverable for ${TRASH_RETENTION_DAYS} days`);
+      renderQlinks();
+      return;
+    }
+    disarmDelete();
+    armedDeleteFolderId = id;
+    armedDeleteTimer = setTimeout(() => { disarmDelete(); renderQlinks(); }, 3000);
     renderQlinks();
   }));
+  el.querySelectorAll('[data-folder-restore]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const f = projectFolders.folders.find(f => f.id === btn.dataset.folderRestore);
+    if (!f) return;
+    restoreFolder(f.id);
+    toast(`Restored "${f.name}"`);
+    renderQlinks();
+  }));
+  el.querySelectorAll('[data-folder-purge]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const f = projectFolders.folders.find(f => f.id === btn.dataset.folderPurge);
+    if (!f) return;
+    if (!confirm(`Permanently delete "${f.name}"? This cannot be undone.`)) return;
+    purgeFolderForever(f.id);
+    renderQlinks();
+  }));
+  const trashToggleBtn = document.getElementById('trash-toggle');
+  if (trashToggleBtn) trashToggleBtn.addEventListener('click', () => {
+    trashExpanded = !trashExpanded;
+    renderQlinks();
+  });
   const newFolderBtn = document.getElementById('new-folder-btn');
   if (newFolderBtn) newFolderBtn.addEventListener('click', () => {
     const name = (prompt('New folder name:', '') || '').trim();
@@ -1463,10 +1644,12 @@ function wireSheet(modalId, toggleId, closeId) {
 }
 wireSheet('projects-modal', 'projects-toggle', 'projects-modal-close');
 wireSheet('task-modal', null, 'task-modal-close');
+wireSheet('stats-modal', 'stats-toggle', 'stats-modal-close');
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   closeSheet('projects-modal');
   closeSheet('task-modal');
+  closeSheet('stats-modal');
 });
 
 // Drag-to-dismiss on a sheet's handle (mobile bottom-sheet layout only —
@@ -1535,7 +1718,58 @@ function wireSheetDrag(handleId, modalId) {
 }
 wireSheetDrag('sheet-handle-wrap', 'projects-modal');
 wireSheetDrag('task-sheet-handle-wrap', 'task-modal');
+wireSheetDrag('stats-sheet-handle-wrap', 'stats-modal');
 
+// Card actions dropdown — one menu element reused for every card (populated
+// fresh per open) instead of one hidden menu per card, positioned near the
+// trigger button and clamped to stay inside the viewport.
+function closeActionMenu() {
+  const menu = document.getElementById('action-menu');
+  if (!menu) return;
+  menu.classList.remove('is-open');
+  delete menu.dataset.forTask;
+}
+function toggleActionMenu(taskId, triggerEl) {
+  const menu = document.getElementById('action-menu');
+  if (!menu) return;
+  if (menu.classList.contains('is-open') && menu.dataset.forTask === taskId) { closeActionMenu(); return; }
+  menu.innerHTML = cardActionDefs.map(d =>
+    `<button class="action-menu-item" data-act="${d.act}" role="menuitem">${actionIcons[d.act]}<span><span class="ami-label">${d.label}</span><span class="ami-desc">${d.desc}</span></span></button>`
+  ).join('');
+  menu.dataset.forTask = taskId;
+  const rect = triggerEl.getBoundingClientRect();
+  const MENU_W = 240, MENU_H_EST = 210;
+  let left = rect.right - MENU_W;
+  let top = rect.bottom + 6;
+  if (left < 8) left = 8;
+  if (left + MENU_W > window.innerWidth - 8) left = window.innerWidth - MENU_W - 8;
+  if (top + MENU_H_EST > window.innerHeight - 8) top = rect.top - MENU_H_EST - 6; // flip above if no room below
+  if (top < 8) top = 8;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  requestAnimationFrame(() => menu.classList.add('is-open'));
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const menu = document.getElementById('action-menu');
+  if (!menu) return;
+  menu.addEventListener('click', (e) => {
+    const item = e.target.closest('.action-menu-item');
+    if (!item) return;
+    const taskId = menu.dataset.forTask;
+    const task = tasks.find(t => t.id === taskId);
+    closeActionMenu();
+    if (task) pingClaude(task, item.dataset.act);
+  });
+});
+// Close on outside click, Escape, or scroll (a stale-positioned menu is worse than none).
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('action-menu');
+  if (!menu || !menu.classList.contains('is-open')) return;
+  if (menu.contains(e.target) || e.target.closest('.act-menu-btn')) return;
+  closeActionMenu();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeActionMenu(); });
+window.addEventListener('scroll', () => closeActionMenu(), true);
 
 function renderColToggles() {
   const el = document.getElementById('col-toggles');
