@@ -687,6 +687,75 @@ function generateResumePrompt(key) {
   ].join('\n');
 }
 
+// Builds the generic "connect a brand-new project to the kanban" prompt —
+// unlike generateResumePrompt() this isn't keyed to an existing project row;
+// it walks a fresh agent through checking the registry, self-registering if
+// needed, and then the same ongoing sync discipline everyone else follows.
+function generateConnectPrompt() {
+  return [
+    'Connect this project to Omri\'s shared multi-project kanban board so its',
+    'status is visible alongside everything else he\'s tracking.',
+    '',
+    'Board: https://kanban-otwdesign.vercel.app',
+    'Full sync protocol: https://github.com/OppositeX/kanban-otwdesign/blob/main/AGENTS.md',
+    '',
+    'KANBAN_URL="https://yxaxmqmkfyhsawbdlloo.supabase.co/rest/v1"',
+    'KANBAN_KEY="' + SUPABASE_ANON_KEY + '"',
+    'AUTH=(-H "apikey: $KANBAN_KEY" -H "Authorization: Bearer $KANBAN_KEY")',
+    '',
+    '1. Check whether this project is already registered — match its GitHub URL',
+    '   against the live registry:',
+    '   curl -s "${AUTH[@]}" "$KANBAN_URL/kanban_projects?select=key,name,prefix,links"',
+    '',
+    '2. If it is NOT registered yet, pick a short lowercase key and a task-ID',
+    '   prefix that doesn\'t collide with anything in that list, then self-register:',
+    '   curl -s -X POST "${AUTH[@]}" -H "Content-Type: application/json" -H "Prefer: return=minimal" \\',
+    '     "$KANBAN_URL/kanban_projects" \\',
+    '     -d \'{"key":"<key>","name":"<Project Name>","prefix":"<PREFIX>","links":[{"kind":"github","url":"<repo-url>","label":"GitHub"}]}\'',
+    '   Only key and name are required — color/logo/handoff can be filled in later.',
+    '   An unregistered or brand-new project can never break the board.',
+    '',
+    '3. Create a first card so the board shows real state:',
+    '   curl -s -X POST "${AUTH[@]}" -H "Content-Type: application/json" -H "Prefer: return=minimal" \\',
+    '     "$KANBAN_URL/kanban_tasks" \\',
+    '     -d \'{"id":"<PREFIX>-1","proj":"<key>","col":"wip","pri":"med","t":"<short outcome-oriented title>","s":"<current state of the work>","scope":["..."],"updated_by":"agent-<key>"}\'',
+    '',
+    '4. From here on, follow the full ongoing protocol in AGENTS.md every session:',
+    '   - session start: pull your open cards (proj=eq.<key>, col not in done/archive),',
+    '     reconcile against git/deploy reality before doing anything else',
+    '   - claim a card (col: wip, set started_at) before working it',
+    '   - keep s / note / scope / links truthful — update after every real step,',
+    '     not on a timer',
+    '   - land it in review (needs Omri to verify), wait (blocked on Omri — say',
+    '     exactly what in note), or done (verified only — never claim done for',
+    '     untested work)',
+    '   - new work you discover -> a new card, not a footnote on this one',
+    '   - before ending a session, write/update the handoff manual',
+    '     (kanban_projects.handoff): current state, key decisions + why, gotchas,',
+    '     the exact next step — so a fresh session can resume cold',
+    '   - only ever touch rows where proj = your key; set updated_by on every',
+    '     write; never write updated_at (a trigger owns it)',
+    '',
+    '5. Add this to the project\'s own CLAUDE.md so future sessions pick up the',
+    '   rules automatically (replace <key>/<PREFIX>):',
+    '',
+    '   ## Kanban sync (required)',
+    '   This project is tracked on the shared kanban (proj key: `<key>`, task prefix',
+    '   `<PREFIX>`, agent slug `agent-<key>`). Follow the protocol in',
+    '   https://github.com/OppositeX/kanban-otwdesign/blob/main/AGENTS.md',
+    '   Non-negotiables for every session:',
+    '   1. START: fetch open cards (proj=eq.<key>, col not in done/archive) and',
+    '      reconcile with git/deploy reality before doing anything else.',
+    '   2. CLAIM: move the card you work on to wip (+ started_at) before coding.',
+    '   3. DURING: after each push/deploy/blocker, update s, note, scope, and add',
+    '      PR/preview URLs to links. Set updated_by: "agent-<key>" on every write.',
+    '   4. END: land the card in review (needs Omri), wait (blocked on Omri — say',
+    '      on what), or done (verified, + shipped_at). Create cards for follow-up',
+    '      work you found.',
+    '   Never mark untested work done. Never touch cards of other projects.'
+  ].join('\n');
+}
+
 async function sbPatchTask(id, patch) {
   if (!sbConfigured) return false;
   try {
@@ -1446,7 +1515,8 @@ function renderQlinks() {
     if (inFolder) { (grouped[fid] = grouped[fid] || []).push(k); } else { unfiled.push(k); }
   });
 
-  let html = `<button class="new-folder-btn" id="new-folder-btn">+ New folder</button>`;
+  let html = `<button class="new-folder-btn" id="connect-project-btn">${actionIcons.copy} Copy new-project connect prompt</button>`
+    + `<button class="new-folder-btn" id="new-folder-btn">+ New folder</button>`;
   activeFolders.forEach(f => {
     const members = grouped[f.id] || [];
     const collapsed = !!f.collapsed;
@@ -1583,6 +1653,11 @@ function renderQlinks() {
   if (newFolderBtn) newFolderBtn.addEventListener('click', () => {
     const name = (prompt('New folder name:', '') || '').trim();
     if (name) { createFolder(name); renderQlinks(); }
+  });
+  const connectProjectBtn = document.getElementById('connect-project-btn');
+  if (connectProjectBtn) connectProjectBtn.addEventListener('click', () => {
+    copyText(generateConnectPrompt());
+    toast('Copied — paste into a new project\'s agent session');
   });
 }
 
